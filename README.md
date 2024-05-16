@@ -25,13 +25,13 @@ This project simulates the future stock prices of a user-specified ticker using 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/stock-price-simulation.git
-   cd stock-price-simulation
+   git clone https://github.com/excoffierleonard/sbs-gbm.git
+   cd sbs-gbm
    ```
 
 2. Install the required libraries:
    ```bash
-   pip install numpy pandas matplotlib yfinance
+   pip install -r requirements. txt
    ```
 
 ## Usage
@@ -39,7 +39,7 @@ This project simulates the future stock prices of a user-specified ticker using 
 1. Run the script:
 
    ```bash
-   python stock_simulation.py
+   python main.py
    ```
 
 2. Follow the prompts:
@@ -59,20 +59,20 @@ Running the script with prompt inputs:
 
 ```
 Enter the stock ticker: AAPL
-Enter start date for historical data (YYYY-MM-DD) [default: 2018-09-30]:
-Enter end date for historical data (YYYY-MM-DD) [default: 2023-09-30]:
+Enter start date for historical data (YYYY-MM-DD) [default: 2019-05-17]:
+Enter end date for historical data (YYYY-MM-DD) [default: 2024-05-15]:
 Enter the prediction period in days [default: 1260]:
 ```
 
 Output:
 
-- Annualized Mean Return (mu): 0.3045
-- Annualized Volatility (sigma): 0.2710
-- Most Recent Closing Price: 150.30
+- Annualized Mean Return (mu): 0.3965
+- Annualized Volatility (sigma): 0.3177
+- Most Recent Closing Price: 187.43
 
 The plot displays the simulated stock price path over the next 1260 days (5 years).
 
-![Simulated Stock Price Path](plot.png)
+![Simulated Stock Price Path](example.png)
 
 ## How It Works
 
@@ -84,7 +84,7 @@ The plot displays the simulated stock price path over the next 1260 days (5 year
 
 ## Contribution
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/stock-price-simulation/issues).
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/excoffierleonard/sps-gbm/issues).
 
 ## License
 
