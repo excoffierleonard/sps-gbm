@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -45,9 +45,24 @@ def simulate_stock_price(S0, mu, sigma, T, N):
 # Main function
 def main():
     # User input
-    ticker = input("Enter the stock ticker: ")
-    start_date = input("Enter start date for historical data (YYYY-MM-DD): ")
-    end_date = input("Enter end date for historical data (YYYY-MM-DD): ")
+    ticker = input("Enter the stock ticker: ").strip()
+
+    # Default start date (5 years ago) and end date (most recent)
+    default_end_date = datetime.today().date()
+    default_start_date = default_end_date - timedelta(days=5 * 365)
+
+    start_date = input(
+        f"Enter start date for historical data (YYYY-MM-DD) [default: {default_start_date}]: "
+    ).strip()
+    end_date = input(
+        f"Enter end date for historical data (YYYY-MM-DD) [default: {default_end_date}]: "
+    ).strip()
+
+    # Use default dates if the input fields are empty
+    if not start_date:
+        start_date = default_start_date
+    if not end_date:
+        end_date = default_end_date
 
     # Calculate parameters
     mu, sigma, S0 = calculate_parameters(ticker, start_date, end_date)
