@@ -31,7 +31,7 @@ This project simulates the future stock prices of a user-specified ticker using 
 
 2. Install the required libraries:
    ```bash
-   pip install -r requirements. txt
+   pip install -r requirements.txt
    ```
 
 ## Usage
