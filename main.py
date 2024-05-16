@@ -88,12 +88,17 @@ def main():
     # Simulate future stock prices
     future_prices = simulate_stock_price(S0, mu, sigma, T, N)
 
+    # Generate dates for the x-axis
+    future_dates = [default_end_date + timedelta(days=i) for i in range(N + 1)]
+
     # Plot the stock price path
-    plt.plot(future_prices)
+    plt.figure(figsize=(10, 6))
+    plt.plot(future_dates, future_prices)
     plt.title(f"Stock Price Simulation for {ticker} using GBM")
-    plt.xlabel("Time Steps")
+    plt.xlabel("Date")
     plt.ylabel("Stock Price")
     plt.grid(True)
+    plt.gcf().autofmt_xdate()  # Auto-format the x-axis to show dates nicely
     plt.show()
 
 
