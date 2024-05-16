@@ -25,7 +25,7 @@ This project simulates the future stock prices of a user-specified ticker using 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/excoffierleonard/sbs-gbm.git
+   git clone https://github.com/excoffierleonard/sps-gbm.git
    cd sbs-gbm
    ```
 
