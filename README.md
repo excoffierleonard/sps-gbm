@@ -84,7 +84,7 @@ The plot displays the simulated stock price path over the next 1260 days (5 year
 
 ## Possible Improvements
 
-There are several enhancements you can make to this project to increase its functionality and robustness:
+There are several enhancements we can make to this project to increase its functionality and robustness:
 
 1. **Monte Carlo Simulation**:
 
