@@ -122,7 +122,7 @@ There are several enhancements you can make to this project to increase its func
 8. **Backtesting**:
    - Develop backtesting functionality to compare the simulation results with actual historical outcomes to validate the model.
 
-By adding these features, you can make this project more comprehensive and useful for various financial modeling and forecasting scenarios.
+By adding these features, we can make this project more comprehensive and useful for various financial modeling and forecasting scenarios.
 
 ## Contribution
 
