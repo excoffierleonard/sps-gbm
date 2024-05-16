@@ -72,9 +72,18 @@ def main():
     print(f"Annualized Volatility (sigma): {sigma:.4f}")
     print(f"Most Recent Closing Price: {S0:.2f}")
 
-    # Projection parameters
-    T = 1  # Time period (one year)
-    N = 252  # Number of steps (e.g., trading days in a year)
+    # Prompt for the prediction period in days
+    default_prediction_days = 5 * 252  # Default: 1260 days (5 years)
+    prediction_days_input = input(
+        f"Enter the prediction period in days [default: {default_prediction_days}]: "
+    ).strip()
+    prediction_days = (
+        int(prediction_days_input) if prediction_days_input else default_prediction_days
+    )
+
+    # Set the time period and number of steps
+    T = prediction_days / 252  # Time period in years
+    N = prediction_days  # Number of steps (days to project)
 
     # Simulate future stock prices
     future_prices = simulate_stock_price(S0, mu, sigma, T, N)
