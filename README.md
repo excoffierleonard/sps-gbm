@@ -82,6 +82,48 @@ The plot displays the simulated stock price path over the next 1260 days (5 year
 4. **Simulate Future Prices**: Using the GBM formula, the script projects future stock prices based on the calculated parameters.
 5. **Plot**: The script plots the simulated stock prices with the corresponding dates for easy interpretation.
 
+## Possible Improvements
+
+There are several enhancements you can make to this project to increase its functionality and robustness:
+
+1. **Monte Carlo Simulation**:
+
+   - Run multiple simulations to better understand the variability and range of possible future stock prices.
+   - Aggregate and visualize the results to see potential future price distributions and confidence intervals.
+
+2. **Parameter Estimation Methods**:
+
+   - Improve the calculation of drift (\(\mu\)) and volatility (\(\sigma\)) using more advanced statistical methods.
+   - Consider using exponential moving averages or GARCH models to capture more dynamic aspects of financial time series.
+
+3. **User Interface**:
+
+   - Create a graphical user interface (GUI) to make the application more user-friendly.
+   - Implement interactive plots where users can hover over points to see exact values.
+
+4. **Report Generation**:
+
+   - Automatically generate detailed reports with charts and statistics after running the simulations.
+   - Include summary statistics and risk metrics such as Value at Risk (VaR) and Expected Shortfall (ES).
+
+5. **Extend to Other Asset Classes**:
+
+   - Adapt the model to simulate other types of financial assets like commodities, bonds, or cryptocurrencies.
+
+6. **Integration with Data Sources**:
+
+   - Integrate with real-time data APIs to fetch the most recent stock prices and perform live simulations.
+   - Use historical fundamental data to enhance the parameter estimation.
+
+7. **Sensitivity Analysis**:
+
+   - Implement sensitivity analysis to understand how changes in input parameters (drift, volatility) affect the simulation outcomes.
+
+8. **Backtesting**:
+   - Develop backtesting functionality to compare the simulation results with actual historical outcomes to validate the model.
+
+By adding these features, you can make this project more comprehensive and useful for various financial modeling and forecasting scenarios.
+
 ## Contribution
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/excoffierleonard/sps-gbm/issues).
