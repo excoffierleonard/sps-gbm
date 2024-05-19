@@ -58,17 +58,17 @@ This project simulates the future stock prices of a user-specified ticker using 
 Running the script with prompt inputs:
 
 ```
-Enter the stock ticker: AAPL
-Enter start date for historical data (YYYY-MM-DD) [default: 2019-05-17]:
-Enter end date for historical data (YYYY-MM-DD) [default: 2024-05-15]:
+Enter the stock ticker: MSFT
+Enter start date for historical data (YYYY-MM-DD) [default: 2019-05-21]:
+Enter end date for historical data (YYYY-MM-DD) [default: 2024-05-19]:
 Enter the prediction period in days [default: 1260]:
 ```
 
 Output:
 
-- Annualized Mean Return (mu): 0.3965
-- Annualized Volatility (sigma): 0.3177
-- Most Recent Closing Price: 187.43
+- Annualized Mean Return (mu): 0.3440
+- Annualized Volatility (sigma): 0.3038
+- Most Recent Closing Price: 420.21
 
 The plot displays the simulated stock price path over the next 1260 days (5 years).
 
