@@ -105,6 +105,7 @@ def plot_simulation(ticker, future_dates, simulations):
 
 # TODO: Refactor function so its more readable.
 # TODO: Have a better final report of summary stats.
+# TODO: Edit Readme so it reflect the changes made recently.
 def main():
     # Get user inputs
     ticker, start_date, end_date = get_inputs()
