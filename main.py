@@ -134,6 +134,20 @@ def main():
     # Plot the stock price paths for all simulations
     plot_simulation(ticker, future_dates, simulations)
 
+    # Extract the final prices from each simulation
+    final_prices = [simulation[-1] for simulation in simulations]
+
+    # Calculate the mean, median, and standard deviation of the final prices
+    mean_final_price = np.mean(final_prices)
+    median_final_price = np.median(final_prices)
+    std_final_price = np.std(final_prices)
+
+    # Display the summary statistics
+    print(f"\nSummary of Predicted Stock Prices after {prediction_days} days:")
+    print(f"Mean Final Price: {mean_final_price:.2f}")
+    print(f"Median Final Price: {median_final_price:.2f}")
+    print(f"Standard Deviation of Final Prices: {std_final_price:.2f}")
+
 
 if __name__ == "__main__":
     main()
