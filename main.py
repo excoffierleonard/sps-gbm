@@ -187,6 +187,7 @@ def display_summary(
         )
 
 
+# TODO: Fix Date not displaying on x axis.
 # Function to plot the simulation
 def plot_simulation(ticker, future_dates, simulations, ax_sim):
     for future_prices in simulations:
