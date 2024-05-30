@@ -128,12 +128,6 @@ def main():
         future_prices = simulate_stock_price(S0, mu, sigma, T, N)
         simulations.append(future_prices)
 
-    # Generate dates for the x-axis
-    future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
-
-    # Plot the stock price paths for all simulations
-    plot_simulation(ticker, future_dates, simulations)
-
     # Extract the final prices from each simulation
     final_prices = [simulation[-1] for simulation in simulations]
 
@@ -147,6 +141,12 @@ def main():
     print(f"Mean Final Price: {mean_final_price:.2f}")
     print(f"Median Final Price: {median_final_price:.2f}")
     print(f"Standard Deviation of Final Prices: {std_final_price:.2f}")
+
+    # Generate dates for the x-axis
+    future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
+
+    # Plot the stock price paths for all simulations
+    plot_simulation(ticker, future_dates, simulations)
 
 
 if __name__ == "__main__":
