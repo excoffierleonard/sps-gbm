@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import yfinance as yf
 
 
@@ -64,8 +63,9 @@ def get_inputs():
     return ticker, start_date, end_date
 
 
-# Function to get prediction period
-def get_prediction_period():
+# Function to get prediction parameters
+def get_prediction_parameters():
+    # Prediction period
     default_prediction_days = 5 * 252  # Default: 1260 days (5 years)
     prediction_days_input = input(
         f"Enter the prediction period in days [default: {default_prediction_days}]: "
@@ -73,11 +73,8 @@ def get_prediction_period():
     prediction_days = (
         int(prediction_days_input) if prediction_days_input else default_prediction_days
     )
-    return prediction_days
 
-
-# Function to get the number of simulations
-def get_num_simulations():
+    # Number of simulations
     default_num_simulations = 1000  # Default value
     num_simulations_input = input(
         f"Enter the number of simulations to perform [default: {default_num_simulations}]: "
@@ -85,7 +82,8 @@ def get_num_simulations():
     num_simulations = (
         int(num_simulations_input) if num_simulations_input else default_num_simulations
     )
-    return num_simulations
+
+    return prediction_days, num_simulations
 
 
 # Function to plot the simulation
@@ -117,11 +115,8 @@ def main():
     print(f"Annualized Volatility (sigma): {sigma:.4f}")
     print(f"Most Recent Closing Price: {S0:.2f}")
 
-    # Get prediction period
-    prediction_days = get_prediction_period()
-
-    # Get number of simulations
-    num_simulations = get_num_simulations()
+    # Get prediction parameters
+    prediction_days, num_simulations = get_prediction_parameters()
 
     # Set the time period and number of steps
     T = prediction_days / 252  # Time period in years
