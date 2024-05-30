@@ -1,5 +1,7 @@
 # Stock Price Simulation using Geometric Brownian Motion (GBM)
 
+<TODO: Update Feature, Usage, Example, and Possible Improvements to reflect Monte-Carlo and enhancements made.>
+
 ## Overview
 
 This project simulates the future stock prices of a user-specified ticker using the Geometric Brownian Motion (GBM) model. The GBM model is widely used in quantitative finance to model stock price trajectories due to its ability to capture both the drift (expected return) and volatility (random fluctuations) of stock prices. The simulation utilizes historical stock data to estimate the parameters for drift and volatility and projects future prices based on user inputs.
