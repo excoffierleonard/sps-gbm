@@ -42,12 +42,10 @@ def simulate_stock_price(S0, mu, sigma, T, N):
     return S
 
 
-# Main function
-def main():
-    # User input
+# Function to get and default user inputs
+def get_inputs():
     ticker = input("Enter the stock ticker: ").strip()
 
-    # Default start date (5 years ago) and end date (most recent)
     default_end_date = datetime.today().date()
     default_start_date = default_end_date - timedelta(days=5 * 365)
 
@@ -58,21 +56,16 @@ def main():
         f"Enter end date for historical data (YYYY-MM-DD) [default: {default_end_date}]: "
     ).strip()
 
-    # Use default dates if the input fields are empty
     if not start_date:
         start_date = default_start_date
     if not end_date:
         end_date = default_end_date
 
-    # Calculate parameters
-    mu, sigma, S0 = calculate_parameters(ticker, start_date, end_date)
+    return ticker, start_date, end_date
 
-    # Display the calculated parameters
-    print(f"Annualized Mean Return (mu): {mu:.4f}")
-    print(f"Annualized Volatility (sigma): {sigma:.4f}")
-    print(f"Most Recent Closing Price: {S0:.2f}")
 
-    # Prompt for the prediction period in days
+# Function to get prediction period
+def get_prediction_period():
     default_prediction_days = 5 * 252  # Default: 1260 days (5 years)
     prediction_days_input = input(
         f"Enter the prediction period in days [default: {default_prediction_days}]: "
@@ -81,17 +74,11 @@ def main():
         int(prediction_days_input) if prediction_days_input else default_prediction_days
     )
 
-    # Set the time period and number of steps
-    T = prediction_days / 252  # Time period in years
-    N = prediction_days  # Number of steps (days to project)
+    return prediction_days
 
-    # Simulate future stock prices
-    future_prices = simulate_stock_price(S0, mu, sigma, T, N)
 
-    # Generate dates for the x-axis
-    future_dates = [default_end_date + timedelta(days=i) for i in range(N + 1)]
-
-    # Plot the stock price path
+# Function to plot the simulation
+def plot_simulation(ticker, future_dates, future_prices):
     plt.figure(figsize=(10, 6))
     plt.plot(future_dates, future_prices)
     plt.title(f"Stock Price Simulation for {ticker} using GBM")
@@ -102,6 +89,34 @@ def main():
     plt.show()
 
 
-# Run the program
+def main():
+    # Get user inputs
+    ticker, start_date, end_date = get_inputs()
+
+    # Calculate parameters
+    mu, sigma, S0 = calculate_parameters(ticker, start_date, end_date)
+
+    # Display the calculated parameters
+    print(f"Annualized Mean Return (mu): {mu:.4f}")
+    print(f"Annualized Volatility (sigma): {sigma:.4f}")
+    print(f"Most Recent Closing Price: {S0:.2f}")
+
+    # Get prediction period
+    prediction_days = get_prediction_period()
+
+    # Set the time period and number of steps
+    T = prediction_days / 252  # Time period in years
+    N = prediction_days  # Number of steps (days to project)
+
+    # Simulate future stock prices
+    future_prices = simulate_stock_price(S0, mu, sigma, T, N)
+
+    # Generate dates for the x-axis
+    future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
+
+    # Plot the stock price path
+    plot_simulation(ticker, future_dates, future_prices)
+
+
 if __name__ == "__main__":
     main()
