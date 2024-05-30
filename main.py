@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 import yfinance as yf
+from scipy import stats
 
 
 # Function to fetch historical data and calculate mu and sigma
@@ -97,31 +98,119 @@ def perform_simulations(S0, mu, sigma, T, N, num_simulations):
 
 # Function to display summary statistics
 def display_summary(
-    prediction_days, mean_final_price, median_final_price, std_final_price
+    prediction_days,
+    final_prices,
+    mean_final_price,
+    median_final_price,
+    std_final_price,
+    target_price=None,
 ):
+    from scipy import stats
+
+    # Confidence Interval Calculation
+    confidence_level = 0.95
+    confidence_interval = stats.norm.interval(
+        confidence_level, loc=mean_final_price, scale=std_final_price
+    )
+
+    # Percentiles Calculation
+    percentiles = np.percentile(final_prices, [10, 25, 75, 90])
+
+    # Probability of Profit Calculation
+    if target_price:
+        probability_of_profit = np.mean(np.array(final_prices) > target_price)
+
+    # Print the summary
     print(f"\nSummary of Predicted Stock Prices after {prediction_days} days:")
     print(f"Mean Final Price: {mean_final_price:.2f}")
     print(f"Median Final Price: {median_final_price:.2f}")
     print(f"Standard Deviation of Final Prices: {std_final_price:.2f}")
+    print(
+        f"{confidence_level*100}% Confidence Interval: ({confidence_interval[0]:.2f}, {confidence_interval[1]:.2f})"
+    )
+    print(f"10th Percentile: {percentiles[0]:.2f}")
+    print(f"25th Percentile: {percentiles[1]:.2f}")
+    print(f"75th Percentile: {percentiles[2]:.2f}")
+    print(f"90th Percentile: {percentiles[3]:.2f}")
+    if target_price:
+        print(
+            f"Probability of Exceeding Target Price ({target_price}): {probability_of_profit:.2%}"
+        )
+
+    # Plot a histogram of final prices
+    plt.figure(figsize=(10, 6))
+    plt.hist(final_prices, bins=50, alpha=0.75, edgecolor="k")
+    plt.title(
+        f"Distribution of Final Predicted Stock Prices after {prediction_days} days"
+    )
+    plt.xlabel("Stock Price")
+    plt.ylabel("Frequency")
+    plt.axvline(
+        mean_final_price,
+        color="r",
+        linestyle="dashed",
+        linewidth=1,
+        label="Mean Final Price",
+    )
+    plt.axvline(
+        median_final_price,
+        color="g",
+        linestyle="dashed",
+        linewidth=1,
+        label="Median Final Price",
+    )
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 
 # Main function
 def main():
+    # Get user inputs
     ticker, start_date, end_date = get_inputs()
+
+    # Calculate parameters
     mu, sigma, S0 = calculate_parameters(ticker, start_date, end_date)
+
+    # Display the calculated parameters
     print(f"Annualized Mean Return (mu): {mu:.4f}")
     print(f"Annualized Volatility (sigma): {sigma:.4f}")
     print(f"Most Recent Closing Price: {S0:.2f}")
+
+    # Get prediction parameters
     prediction_days, num_simulations = get_prediction_parameters()
-    T = prediction_days / 252
-    N = prediction_days
-    simulations, mean_final_price, median_final_price, std_final_price = (
-        perform_simulations(S0, mu, sigma, T, N, num_simulations)
-    )
+
+    # Set the time period and number of steps
+    T = prediction_days / 252  # Time period in years
+    N = prediction_days  # Number of steps (days to project)
+
+    # Perform multiple simulations
+    simulations = []
+    for _ in range(num_simulations):
+        future_prices = simulate_stock_price(S0, mu, sigma, T, N)
+        simulations.append(future_prices)
+
+    # Extract the final prices from each simulation
+    final_prices = [simulation[-1] for simulation in simulations]
+
+    # Calculate the mean, median, and standard deviation of the final prices
+    mean_final_price = np.mean(final_prices)
+    median_final_price = np.median(final_prices)
+    std_final_price = np.std(final_prices)
+
+    # Display the summary statistics
     display_summary(
-        prediction_days, mean_final_price, median_final_price, std_final_price
+        prediction_days,
+        final_prices,
+        mean_final_price,
+        median_final_price,
+        std_final_price,
     )
+
+    # Generate dates for the x-axis
     future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
+
+    # Plot the stock price paths for all simulations
     plot_simulation(ticker, future_dates, simulations)
 
 
