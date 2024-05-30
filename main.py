@@ -69,21 +69,6 @@ def get_prediction_parameters():
     return prediction_days, num_simulations
 
 
-# Function to plot the simulation
-def plot_simulation(ticker, future_dates, simulations):
-    plt.figure(figsize=(10, 6))
-    for future_prices in simulations:
-        plt.plot(future_dates, future_prices, alpha=0.3)
-    plt.title(
-        f"Stock Price Simulations for {ticker} using GBM ({len(simulations)} Simulations)"
-    )
-    plt.xlabel("Date")
-    plt.ylabel("Stock Price")
-    plt.grid(True)
-    plt.gcf().autofmt_xdate()
-    plt.show()
-
-
 # Function to perform simulations and display results
 def perform_simulations(S0, mu, sigma, T, N, num_simulations):
     simulations = [
@@ -103,10 +88,9 @@ def display_summary(
     mean_final_price,
     median_final_price,
     std_final_price,
+    ax_hist=None,
     target_price=None,
 ):
-    from scipy import stats
-
     # Confidence Interval Calculation
     confidence_level = 0.95
     confidence_interval = stats.norm.interval(
@@ -138,30 +122,42 @@ def display_summary(
         )
 
     # Plot a histogram of final prices
-    plt.figure(figsize=(10, 6))
-    plt.hist(final_prices, bins=50, alpha=0.75, edgecolor="k")
-    plt.title(
-        f"Distribution of Final Predicted Stock Prices after {prediction_days} days"
+    if ax_hist:
+        ax_hist.hist(final_prices, bins=50, alpha=0.75, edgecolor="k")
+        ax_hist.set_title(
+            f"Distribution of Final Predicted Stock Prices after {prediction_days} days"
+        )
+        ax_hist.set_xlabel("Stock Price")
+        ax_hist.set_ylabel("Frequency")
+        ax_hist.axvline(
+            mean_final_price,
+            color="r",
+            linestyle="dashed",
+            linewidth=1,
+            label="Mean Final Price",
+        )
+        ax_hist.axvline(
+            median_final_price,
+            color="g",
+            linestyle="dashed",
+            linewidth=1,
+            label="Median Final Price",
+        )
+        ax_hist.legend()
+        ax_hist.grid(True)
+
+
+# Function to plot the simulation
+def plot_simulation(ticker, future_dates, simulations, ax_sim):
+    for future_prices in simulations:
+        ax_sim.plot(future_dates, future_prices, alpha=0.3)
+    ax_sim.set_title(
+        f"Stock Price Simulations for {ticker} using GBM ({len(simulations)} Simulations)"
     )
-    plt.xlabel("Stock Price")
-    plt.ylabel("Frequency")
-    plt.axvline(
-        mean_final_price,
-        color="r",
-        linestyle="dashed",
-        linewidth=1,
-        label="Mean Final Price",
-    )
-    plt.axvline(
-        median_final_price,
-        color="g",
-        linestyle="dashed",
-        linewidth=1,
-        label="Median Final Price",
-    )
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    ax_sim.set_xlabel("Date")
+    ax_sim.set_ylabel("Stock Price")
+    ax_sim.grid(True)
+    plt.gcf().autofmt_xdate()
 
 
 # Main function
@@ -198,6 +194,13 @@ def main():
     median_final_price = np.median(final_prices)
     std_final_price = np.std(final_prices)
 
+    # Create subplots
+    fig, (ax_sim, ax_hist) = plt.subplots(2, 1, figsize=(10, 12))
+
+    # Plot the stock price paths for all simulations
+    future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
+    plot_simulation(ticker, future_dates, simulations, ax_sim)
+
     # Display the summary statistics
     display_summary(
         prediction_days,
@@ -205,13 +208,11 @@ def main():
         mean_final_price,
         median_final_price,
         std_final_price,
+        ax_hist=ax_hist,
     )
 
-    # Generate dates for the x-axis
-    future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
-
-    # Plot the stock price paths for all simulations
-    plot_simulation(ticker, future_dates, simulations)
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
