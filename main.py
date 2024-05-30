@@ -81,36 +81,42 @@ def perform_simulations(S0, mu, sigma, T, N, num_simulations):
     return simulations, mean_final_price, median_final_price, std_final_price
 
 
-# Function to display summary statistics
-def display_summary(
-    prediction_days,
-    final_prices,
-    mean_final_price,
-    median_final_price,
-    std_final_price,
-    ax_hist=None,
-    target_price=None,
+# Function to calculate confidence interval
+def calculate_confidence_interval(
+    mean_final_price, std_final_price, confidence_level=0.95
 ):
-    # Confidence Interval Calculation
-    confidence_level = 0.95
-    confidence_interval = stats.norm.interval(
+    return stats.norm.interval(
         confidence_level, loc=mean_final_price, scale=std_final_price
     )
 
-    # Percentiles Calculation
-    percentiles = np.percentile(final_prices, [10, 25, 75, 90])
 
-    # Probability of Profit Calculation
-    if target_price:
-        probability_of_profit = np.mean(np.array(final_prices) > target_price)
+# Function to calculate percentiles
+def calculate_percentiles(final_prices, percentiles=(10, 25, 75, 90)):
+    return np.percentile(final_prices, percentiles)
 
-    # Print the summary
+
+# Function to calculate probability of profit
+def calculate_probability_of_profit(final_prices, target_price):
+    return np.mean(np.array(final_prices) > target_price)
+
+
+# Function to print summary statistics
+def print_summary(
+    prediction_days,
+    mean_final_price,
+    median_final_price,
+    std_final_price,
+    confidence_interval,
+    percentiles,
+    probability_of_profit=None,
+    target_price=None,
+):
     print(f"\nSummary of Predicted Stock Prices after {prediction_days} days:")
     print(f"Mean Final Price: {mean_final_price:.2f}")
     print(f"Median Final Price: {median_final_price:.2f}")
     print(f"Standard Deviation of Final Prices: {std_final_price:.2f}")
     print(
-        f"{confidence_level*100}% Confidence Interval: ({confidence_interval[0]:.2f}, {confidence_interval[1]:.2f})"
+        f"95% Confidence Interval: ({confidence_interval[0]:.2f}, {confidence_interval[1]:.2f})"
     )
     print(f"10th Percentile: {percentiles[0]:.2f}")
     print(f"25th Percentile: {percentiles[1]:.2f}")
@@ -121,30 +127,70 @@ def display_summary(
             f"Probability of Exceeding Target Price ({target_price}): {probability_of_profit:.2%}"
         )
 
-    # Plot a histogram of final prices
+
+# Function to plot histogram of final prices
+def plot_histogram(
+    final_prices, mean_final_price, median_final_price, prediction_days, ax_hist
+):
+    ax_hist.hist(final_prices, bins=50, alpha=0.75, edgecolor="k")
+    ax_hist.set_title(
+        f"Distribution of Final Predicted Stock Prices after {prediction_days} days"
+    )
+    ax_hist.set_xlabel("Stock Price")
+    ax_hist.set_ylabel("Frequency")
+    ax_hist.axvline(
+        mean_final_price,
+        color="r",
+        linestyle="dashed",
+        linewidth=1,
+        label="Mean Final Price",
+    )
+    ax_hist.axvline(
+        median_final_price,
+        color="g",
+        linestyle="dashed",
+        linewidth=1,
+        label="Median Final Price",
+    )
+    ax_hist.legend()
+    ax_hist.grid(True)
+
+
+# Refactored display summary function
+def display_summary(
+    prediction_days,
+    final_prices,
+    mean_final_price,
+    median_final_price,
+    std_final_price,
+    ax_hist=None,
+    target_price=None,
+):
+    confidence_interval = calculate_confidence_interval(
+        mean_final_price, std_final_price
+    )
+    percentiles = calculate_percentiles(final_prices)
+    probability_of_profit = None
+    if target_price:
+        probability_of_profit = calculate_probability_of_profit(
+            final_prices, target_price
+        )
+
+    print_summary(
+        prediction_days,
+        mean_final_price,
+        median_final_price,
+        std_final_price,
+        confidence_interval,
+        percentiles,
+        probability_of_profit,
+        target_price,
+    )
+
     if ax_hist:
-        ax_hist.hist(final_prices, bins=50, alpha=0.75, edgecolor="k")
-        ax_hist.set_title(
-            f"Distribution of Final Predicted Stock Prices after {prediction_days} days"
+        plot_histogram(
+            final_prices, mean_final_price, median_final_price, prediction_days, ax_hist
         )
-        ax_hist.set_xlabel("Stock Price")
-        ax_hist.set_ylabel("Frequency")
-        ax_hist.axvline(
-            mean_final_price,
-            color="r",
-            linestyle="dashed",
-            linewidth=1,
-            label="Mean Final Price",
-        )
-        ax_hist.axvline(
-            median_final_price,
-            color="g",
-            linestyle="dashed",
-            linewidth=1,
-            label="Median Final Price",
-        )
-        ax_hist.legend()
-        ax_hist.grid(True)
 
 
 # Function to plot the simulation
