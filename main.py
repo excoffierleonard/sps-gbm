@@ -73,15 +73,31 @@ def get_prediction_period():
     prediction_days = (
         int(prediction_days_input) if prediction_days_input else default_prediction_days
     )
-
     return prediction_days
 
 
+# Function to get the number of simulations
+def get_num_simulations():
+    default_num_simulations = 1000  # Default value
+    num_simulations_input = input(
+        f"Enter the number of simulations to perform [default: {default_num_simulations}]: "
+    ).strip()
+    num_simulations = (
+        int(num_simulations_input) if num_simulations_input else default_num_simulations
+    )
+    return num_simulations
+
+
 # Function to plot the simulation
-def plot_simulation(ticker, future_dates, future_prices):
+def plot_simulation(ticker, future_dates, simulations):
     plt.figure(figsize=(10, 6))
-    plt.plot(future_dates, future_prices)
-    plt.title(f"Stock Price Simulation for {ticker} using GBM")
+    for future_prices in simulations:
+        plt.plot(
+            future_dates, future_prices, alpha=0.3
+        )  # Added transparency for better visualization
+    plt.title(
+        f"Stock Price Simulations for {ticker} using GBM ({len(simulations)} Simulations)"
+    )
     plt.xlabel("Date")
     plt.ylabel("Stock Price")
     plt.grid(True)
@@ -104,18 +120,24 @@ def main():
     # Get prediction period
     prediction_days = get_prediction_period()
 
+    # Get number of simulations
+    num_simulations = get_num_simulations()
+
     # Set the time period and number of steps
     T = prediction_days / 252  # Time period in years
     N = prediction_days  # Number of steps (days to project)
 
-    # Simulate future stock prices
-    future_prices = simulate_stock_price(S0, mu, sigma, T, N)
+    # Perform multiple simulations
+    simulations = []
+    for _ in range(num_simulations):
+        future_prices = simulate_stock_price(S0, mu, sigma, T, N)
+        simulations.append(future_prices)
 
     # Generate dates for the x-axis
     future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
 
-    # Plot the stock price path
-    plot_simulation(ticker, future_dates, future_prices)
+    # Plot the stock price paths for all simulations
+    plot_simulation(ticker, future_dates, simulations)
 
 
 if __name__ == "__main__":
