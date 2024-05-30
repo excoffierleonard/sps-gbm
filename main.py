@@ -81,23 +81,23 @@ def perform_simulations(S0, mu, sigma, T, N, num_simulations):
     return simulations, mean_final_price, median_final_price, std_final_price
 
 
-# Function to calculate confidence interval
-def calculate_confidence_interval(
-    mean_final_price, std_final_price, confidence_level=0.95
+# Function to calculate summary statistics
+def calculate_summary_stats(
+    final_prices,
+    mean_final_price,
+    std_final_price,
+    target_price=None,
+    confidence_level=0.95,
+    percentiles=(10, 25, 75, 90),
 ):
-    return stats.norm.interval(
+    confidence_interval = stats.norm.interval(
         confidence_level, loc=mean_final_price, scale=std_final_price
     )
-
-
-# Function to calculate percentiles
-def calculate_percentiles(final_prices, percentiles=(10, 25, 75, 90)):
-    return np.percentile(final_prices, percentiles)
-
-
-# Function to calculate probability of profit
-def calculate_probability_of_profit(final_prices, target_price):
-    return np.mean(np.array(final_prices) > target_price)
+    calculated_percentiles = np.percentile(final_prices, percentiles)
+    probability_of_profit = None
+    if target_price:
+        probability_of_profit = np.mean(np.array(final_prices) > target_price)
+    return confidence_interval, calculated_percentiles, probability_of_profit
 
 
 # Function to print summary statistics
@@ -166,15 +166,9 @@ def display_summary(
     ax_hist=None,
     target_price=None,
 ):
-    confidence_interval = calculate_confidence_interval(
-        mean_final_price, std_final_price
+    confidence_interval, percentiles, probability_of_profit = calculate_summary_stats(
+        final_prices, mean_final_price, std_final_price, target_price
     )
-    percentiles = calculate_percentiles(final_prices)
-    probability_of_profit = None
-    if target_price:
-        probability_of_profit = calculate_probability_of_profit(
-            final_prices, target_price
-        )
 
     print_summary(
         prediction_days,
@@ -206,48 +200,51 @@ def plot_simulation(ticker, future_dates, simulations, ax_sim):
     plt.gcf().autofmt_xdate()
 
 
-# Main function
-def main():
-    # Get user inputs
-    ticker, start_date, end_date = get_inputs()
-
-    # Calculate parameters
-    mu, sigma, S0 = calculate_parameters(ticker, start_date, end_date)
-
-    # Display the calculated parameters
+# Function to display calculated parameters
+def display_parameters(mu, sigma, S0):
     print(f"Annualized Mean Return (mu): {mu:.4f}")
     print(f"Annualized Volatility (sigma): {sigma:.4f}")
     print(f"Most Recent Closing Price: {S0:.2f}")
 
-    # Get prediction parameters
-    prediction_days, num_simulations = get_prediction_parameters()
 
-    # Set the time period and number of steps
+# Function to set simulation parameters
+def set_simulation_parameters(prediction_days):
     T = prediction_days / 252  # Time period in years
     N = prediction_days  # Number of steps (days to project)
+    return T, N
 
-    # Perform multiple simulations
-    simulations = []
-    for _ in range(num_simulations):
-        future_prices = simulate_stock_price(S0, mu, sigma, T, N)
-        simulations.append(future_prices)
 
-    # Extract the final prices from each simulation
+# Function to run multiple simulations
+def run_simulations(S0, mu, sigma, T, N, num_simulations):
+    simulations = [
+        simulate_stock_price(S0, mu, sigma, T, N) for _ in range(num_simulations)
+    ]
     final_prices = [simulation[-1] for simulation in simulations]
+    return simulations, final_prices
 
-    # Calculate the mean, median, and standard deviation of the final prices
+
+# Function to calculate final statistics
+def calculate_final_stats(final_prices):
     mean_final_price = np.mean(final_prices)
     median_final_price = np.median(final_prices)
     std_final_price = np.std(final_prices)
+    return mean_final_price, median_final_price, std_final_price
 
-    # Create subplots
+
+# Function to plot and display results
+def plot_and_display_results(
+    ticker,
+    prediction_days,
+    simulations,
+    final_prices,
+    mean_final_price,
+    median_final_price,
+    std_final_price,
+    N,
+):
     fig, (ax_sim, ax_hist) = plt.subplots(2, 1, figsize=(10, 12))
-
-    # Plot the stock price paths for all simulations
     future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
     plot_simulation(ticker, future_dates, simulations, ax_sim)
-
-    # Display the summary statistics
     display_summary(
         prediction_days,
         final_prices,
@@ -256,9 +253,31 @@ def main():
         std_final_price,
         ax_hist=ax_hist,
     )
-
     plt.tight_layout()
     plt.show()
+
+
+# Refactored main function
+def main():
+    ticker, start_date, end_date = get_inputs()
+    mu, sigma, S0 = calculate_parameters(ticker, start_date, end_date)
+    display_parameters(mu, sigma, S0)
+    prediction_days, num_simulations = get_prediction_parameters()
+    T, N = set_simulation_parameters(prediction_days)
+    simulations, final_prices = run_simulations(S0, mu, sigma, T, N, num_simulations)
+    mean_final_price, median_final_price, std_final_price = calculate_final_stats(
+        final_prices
+    )
+    plot_and_display_results(
+        ticker,
+        prediction_days,
+        simulations,
+        final_prices,
+        mean_final_price,
+        median_final_price,
+        std_final_price,
+        N,
+    )
 
 
 if __name__ == "__main__":
