@@ -7,6 +7,8 @@ from scipy import stats
 
 
 # TODO: Consider alligning prediction days with trading days, rather than just displaying it as steps.
+# TODO: Enhance summary to upside %.
+# TODO: Create complete Stock analysis report and export it in a pretty pdf.
 # Function to fetch historical data and calculate mu and sigma
 def calculate_parameters(ticker, start_date, end_date):
     data = yf.download(ticker, start=start_date, end=end_date)
