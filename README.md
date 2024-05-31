@@ -52,9 +52,9 @@ This project simulates the future stock prices of a user-specified ticker using 
 2. Follow the prompts:
 
    - **Stock Ticker**: Enter the ticker symbol of the stock (e.g., `AAPL` for Apple).
-   - **Start Date**: Enter the start date for historical data in `YYYY-MM-DD` format (default is 5 years ago).
+   - **Start Date**: Enter the start date for historical data in `YYYY-MM-DD` format (default is 1 years ago).
    - **End Date**: Enter the end date for historical data in `YYYY-MM-DD` format (default is the most recent close date).
-   - **Prediction Period**: Enter the number of days to project the stock price (default is 5 years).
+   - **Prediction Period**: Enter the number of days to project the stock price (default is 1 year).
    - **Number of Simulations**: Enter the number of simulations to perform (default is 1000).
 
 3. View the results:
