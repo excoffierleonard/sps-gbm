@@ -9,7 +9,7 @@ This project simulates the future stock prices of a user-specified ticker using 
 ## Features
 
 - Fetch historical stock data from Yahoo Finance.
-- Calculate key metrics: annualized mean return (mu) and volatility (sigma).
+- Calculate key metrics: annualized mean return (µ) and volatility (σ).
 - Simulate future stock prices using the Geometric Brownian Motion (GBM) model with customizable parameters.
 - Perform multiple simulations to estimate the distribution of future stock prices.
 - Calculate and display summary statistics including mean, median, standard deviation, confidence intervals, and percentiles of predicted prices.
@@ -58,7 +58,7 @@ This project simulates the future stock prices of a user-specified ticker using 
    - **Number of Simulations**: Enter the number of simulations to perform (default is 1000).
 
 3. View the results:
-   - The script will display the calculated annualized mean return (mu) and volatility (sigma).
+   - The script will display the calculated annualized mean return (µ) and volatility (σ).
    - It will plot the simulated future stock prices and their paths over time.
    - A histogram will visualize the distribution of final predicted stock prices.
    - Summary statistics including mean, median, standard deviation, confidence intervals, and percentiles of the predicted prices will be displayed.
