@@ -97,11 +97,14 @@ Standard Deviation of Final Prices: 106.80
 
 ## How It Works
 
-1. **Input**: The user provides a stock ticker, date range for historical data, and the prediction period.
-2. **Fetch Data**: The script fetches historical stock prices using the `yfinance` library.
-3. **Calculate Parameters**: The script calculates the daily returns, then computes the annualized mean return (drift, \(\mu\)) and volatility (\(\sigma\)).
-4. **Simulate Future Prices**: Using the GBM formula, the script projects future stock prices based on the calculated parameters.
-5. **Plot**: The script plots the simulated stock prices with the corresponding dates for easy interpretation.
+1. **User Inputs**: The user provides a stock ticker, the date range for historical data, and the prediction period through interactive prompts.
+2. **Fetch Historical Data**: Using the `yfinance` library, the script retrieves historical stock prices for the specified date range.
+3. **Calculate Annual Parameters**: The script calculates the daily returns, which are then used to compute the annualized mean return (µ) and volatility (σ).
+4. **Set Prediction Parameters**: The user specifies the prediction period in days and the number of simulations to perform.
+5. **Simulate Future Stock Prices**: The Geometric Brownian Motion (GBM) model is utilized to simulate future stock prices over the prediction period. This involves generating multiple simulated price paths.
+6. **Run Multiple Simulations**: The script runs the specified number of simulations, storing the final projected prices of each simulation.
+7. **Calculate Summary Statistics**: Key statistics, including the mean, median, and standard deviation of the final projected prices, are computed. Additionally, the script can calculate confidence intervals and probabilities of exceeding a specified target price.
+8. **Plot Results**: The script generates and displays plots to illustrate the simulated stock price trajectories and the distribution of final prices. These plots help in visualizing the potential future performance of the stock.
 
 ## Possible Improvements
 
