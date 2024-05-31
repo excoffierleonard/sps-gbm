@@ -37,7 +37,7 @@ def simulate_stock_price(S0, mu, sigma, T, N):
 def get_inputs():
     ticker = input("Enter the stock ticker: ").strip()
     default_end_date = datetime.today().date()
-    default_start_date = default_end_date - timedelta(days=1 * 365)
+    default_start_date = default_end_date - timedelta(days=5 * 365)
     start_date = input(
         f"Enter start date for historical data (YYYY-MM-DD) [default: {default_start_date}]: "
     ).strip()
