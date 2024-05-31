@@ -6,7 +6,6 @@ import yfinance as yf
 from scipy import stats
 
 
-# TODO: Change written mu and sigma to (µ) and (σ).
 # TODO: Consider alligning prediction days with trading days, rather than just displaying it as steps.
 # TODO: Enhance summary to upside %.
 # TODO: Create complete Stock analysis report and export it in a pretty pdf.
@@ -208,8 +207,8 @@ def plot_simulation(ticker, future_dates, simulations, ax_sim):
 
 # Function to display calculated parameters
 def display_parameters(mu, sigma, S0):
-    print(f"Annualized Mean Return (mu): {mu:.4f}")
-    print(f"Annualized Volatility (sigma): {sigma:.4f}")
+    print(f"Annualized Mean Return (µ): {mu:.4f}")
+    print(f"Annualized Volatility (σ): {sigma:.4f}")
     print(f"Most Recent Closing Price: {S0:.2f}")
 
 
