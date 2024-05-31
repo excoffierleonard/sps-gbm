@@ -6,6 +6,7 @@ import yfinance as yf
 from scipy import stats
 
 
+# TODO: Change written mu and sigma to (µ) and (σ).
 # TODO: Consider alligning prediction days with trading days, rather than just displaying it as steps.
 # TODO: Enhance summary to upside %.
 # TODO: Create complete Stock analysis report and export it in a pretty pdf.
