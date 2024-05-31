@@ -37,7 +37,7 @@ def simulate_stock_price(S0, mu, sigma, T, N):
 def get_inputs():
     ticker = input("Enter the stock ticker: ").strip()
     default_end_date = datetime.today().date()
-    default_start_date = default_end_date - timedelta(days=5 * 365)
+    default_start_date = default_end_date - timedelta(days=1 * 365)
     start_date = input(
         f"Enter start date for historical data (YYYY-MM-DD) [default: {default_start_date}]: "
     ).strip()
@@ -53,7 +53,7 @@ def get_inputs():
 
 # Function to get prediction parameters
 def get_prediction_parameters():
-    default_prediction_days = 5 * 252
+    default_prediction_days = 1 * 252
     prediction_days_input = input(
         f"Enter the prediction period in days [default: {default_prediction_days}]: "
     ).strip()
