@@ -1,6 +1,6 @@
 # Stock Price Simulation using Geometric Brownian Motion (GBM)
 
-<!-- TODO: Update Feature, Usage, Example, and Possible Improvements to reflect Monte-Carlo and enhancements made. -->
+<!-- TODO: Update Usage, Example, and Possible Improvements to reflect Monte-Carlo and enhancements made. -->
 
 ## Overview
 
@@ -9,10 +9,15 @@ This project simulates the future stock prices of a user-specified ticker using 
 ## Features
 
 - Fetch historical stock data from Yahoo Finance.
-- Calculate annualized mean return (drift) and volatility.
-- Simulate future stock prices using the GBM model.
-- Plot the simulated stock prices with dates for clear visualization.
+- Calculate key metrics: annualized mean return (mu) and volatility (sigma).
+- Simulate future stock prices using the Geometric Brownian Motion (GBM) model with customizable parameters.
+- Perform multiple simulations to estimate the distribution of future stock prices.
+- Calculate and display summary statistics including mean, median, standard deviation, confidence intervals, and percentiles of predicted prices.
+- Plot the distribution of simulated final stock prices and their paths over time.
 - User-friendly input prompts for stock ticker, historical data dates, and prediction period.
+- Interactive user inputs for number of simulations and prediction period.
+- Dynamically display calculated parameters and simulation results for robust analysis.
+- Detailed visualization of simulation results, including a histogram of final prices and multiple price projection paths.
 
 ## Requirements
 
