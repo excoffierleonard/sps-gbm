@@ -1,6 +1,6 @@
 # Stock Price Simulation using Geometric Brownian Motion (GBM)
 
-<TODO: Update Feature, Usage, Example, and Possible Improvements to reflect Monte-Carlo and enhancements made.>
+<!-- TODO: Update Feature, Usage, Example, and Possible Improvements to reflect Monte-Carlo and enhancements made. -->
 
 ## Overview
 
