@@ -17,9 +17,10 @@ This project simulates the future stock prices of a user-specified ticker using 
 ## Requirements
 
 - Python 3.x
-- NumPy
 - Matplotlib
+- NumPy
 - yfinance
+- SciPy
 
 ## Installation
 
