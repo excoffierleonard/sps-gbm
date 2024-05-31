@@ -156,4 +156,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Acknowledgments
 
 - This project utilizes the `yfinance` library to fetch historical stock data.
-- Inspiration from "Stochastic Calculus for Finance 1" for the GBM model.
+- Inspiration from "Stochastic Calculus for Finance II" for the GBM model.
