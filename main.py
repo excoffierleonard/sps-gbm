@@ -6,7 +6,6 @@ import yfinance as yf
 from scipy import stats
 
 
-# TODO: First ask all the inputs before any calculations.
 # TODO: Consider alligning prediction days with trading days, rather than just displaying it as steps.
 # TODO: Enhance summary to upside %.
 # TODO: Create complete Stock analysis report and export it in a pretty pdf.
@@ -52,11 +51,7 @@ def get_inputs():
         start_date = default_start_date
     if not end_date:
         end_date = default_end_date
-    return ticker, start_date, end_date
 
-
-# Function to get prediction parameters
-def get_prediction_parameters():
     default_prediction_days = 1 * 252
     prediction_days_input = input(
         f"Enter the prediction period in days [default: {default_prediction_days}]: "
@@ -71,7 +66,8 @@ def get_prediction_parameters():
     num_simulations = (
         int(num_simulations_input) if num_simulations_input else default_num_simulations
     )
-    return prediction_days, num_simulations
+
+    return ticker, start_date, end_date, prediction_days, num_simulations
 
 
 # Function to perform simulations and display results
@@ -192,7 +188,6 @@ def display_summary(
         )
 
 
-# TODO: Fix Date not displaying on x axis.
 # Function to plot the simulation
 def plot_simulation(ticker, future_dates, simulations, ax_sim):
     for future_prices in simulations:
@@ -265,10 +260,9 @@ def plot_and_display_results(
 
 # Refactored main function
 def main():
-    ticker, start_date, end_date = get_inputs()
+    ticker, start_date, end_date, prediction_days, num_simulations = get_inputs()
     mu, sigma, S0 = calculate_parameters(ticker, start_date, end_date)
     display_parameters(mu, sigma, S0)
-    prediction_days, num_simulations = get_prediction_parameters()
     T, N = set_simulation_parameters(prediction_days)
     simulations, final_prices = run_simulations(S0, mu, sigma, T, N, num_simulations)
     mean_final_price, median_final_price, std_final_price = calculate_final_stats(
