@@ -148,7 +148,7 @@ def plot_results(
     N = simulations.shape[1] - 1  # Number of steps
     future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
 
-    fig, (ax_sim, ax_hist) = plt.subplots(2, 1, figsize=(10, 12))
+    fig, (ax_sim, ax_hist) = plt.subplots(1, 2, figsize=(16, 6))  # Side-by-side layout
 
     # Plot simulations
     for future_prices in simulations:
@@ -159,7 +159,6 @@ def plot_results(
     ax_sim.set_xlabel("Date")
     ax_sim.set_ylabel("Stock Price")
     ax_sim.grid(True)
-    plt.gcf().autofmt_xdate()
 
     # Plot histogram of final prices
     ax_hist.hist(final_prices, bins=50, alpha=0.75, edgecolor="k")
@@ -184,6 +183,9 @@ def plot_results(
     )
     ax_hist.legend()
     ax_hist.grid(True)
+
+    # Set a title for the entire figure
+    fig.suptitle(f"Stock Price Simulation and Prediction for {ticker}", fontsize=16)
 
     plt.tight_layout()
     plt.show()
