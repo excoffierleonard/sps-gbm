@@ -96,7 +96,6 @@ def calculate_summary_stats(
     final_prices,
     mean_final_price,
     std_final_price,
-    target_price=None,
     confidence_level=0.95,
     percentiles=(10, 25, 75, 90),
 ):
@@ -104,10 +103,7 @@ def calculate_summary_stats(
         confidence_level, loc=mean_final_price, scale=std_final_price
     )
     calculated_percentiles = np.percentile(final_prices, percentiles)
-    probability_of_profit = None
-    if target_price:
-        probability_of_profit = np.mean(np.array(final_prices) > target_price)
-    return confidence_interval, calculated_percentiles, probability_of_profit
+    return confidence_interval, calculated_percentiles
 
 
 # Unified function to display parameters and summary statistics
@@ -122,8 +118,6 @@ def display_results(
     std_final_price,
     confidence_interval,
     percentiles,
-    probability_of_profit=None,
-    target_price=None,
 ):
     print(f"\nStock Ticker: {ticker}")
     print(f"Annualized Mean Return (µ): {mu:.4f}")
@@ -140,16 +134,34 @@ def display_results(
     print(f"25th Percentile: {percentiles[1]:.2f}")
     print(f"75th Percentile: {percentiles[2]:.2f}")
     print(f"90th Percentile: {percentiles[3]:.2f}")
-    if target_price:
-        print(
-            f"Probability of Exceeding Target Price ({target_price}): {probability_of_profit:.2%}"
-        )
 
 
-# Function to plot histogram of final prices
-def plot_histogram(
-    final_prices, mean_final_price, median_final_price, prediction_days, ax_hist
+# Function to plot simulation results
+def plot_results(
+    ticker,
+    prediction_days,
+    simulations,
+    final_prices,
+    mean_final_price,
+    median_final_price,
 ):
+    N = simulations.shape[1] - 1  # Number of steps
+    future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
+
+    fig, (ax_sim, ax_hist) = plt.subplots(2, 1, figsize=(10, 12))
+
+    # Plot simulations
+    for future_prices in simulations:
+        ax_sim.plot(future_dates, future_prices, alpha=0.3)
+    ax_sim.set_title(
+        f"Stock Price Simulations for {ticker} using GBM ({simulations.shape[0]} Simulations)"
+    )
+    ax_sim.set_xlabel("Date")
+    ax_sim.set_ylabel("Stock Price")
+    ax_sim.grid(True)
+    plt.gcf().autofmt_xdate()
+
+    # Plot histogram of final prices
     ax_hist.hist(final_prices, bins=50, alpha=0.75, edgecolor="k")
     ax_hist.set_title(
         f"Distribution of Final Predicted Stock Prices after {prediction_days} days"
@@ -173,56 +185,6 @@ def plot_histogram(
     ax_hist.legend()
     ax_hist.grid(True)
 
-
-# Function to plot the simulation results
-def plot_simulation(ticker, future_dates, simulations, ax_sim):
-    for future_prices in simulations:
-        ax_sim.plot(future_dates, future_prices, alpha=0.3)
-    ax_sim.set_title(
-        f"Stock Price Simulations for {ticker} using GBM ({simulations.shape[0]} Simulations)"
-    )
-    ax_sim.set_xlabel("Date")
-    ax_sim.set_ylabel("Stock Price")
-    ax_sim.grid(True)
-    plt.gcf().autofmt_xdate()
-
-
-# Function to plot and display all results
-def plot_and_display_results(
-    ticker,
-    prediction_days,
-    simulations,
-    final_prices,
-    mean_final_price,
-    median_final_price,
-    std_final_price,
-    N,
-    mu,
-    sigma,
-    S0,
-):
-    fig, (ax_sim, ax_hist) = plt.subplots(2, 1, figsize=(10, 12))
-    future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
-    plot_simulation(ticker, future_dates, simulations, ax_sim)
-    confidence_interval, percentiles, probability_of_profit = calculate_summary_stats(
-        final_prices, mean_final_price, std_final_price
-    )
-    display_results(
-        ticker,
-        prediction_days,
-        mu,
-        sigma,
-        S0,
-        mean_final_price,
-        median_final_price,
-        std_final_price,
-        confidence_interval,
-        percentiles,
-        probability_of_profit,
-    )
-    plot_histogram(
-        final_prices, mean_final_price, median_final_price, prediction_days, ax_hist
-    )
     plt.tight_layout()
     plt.show()
 
@@ -242,19 +204,33 @@ def main():
         simulate_and_perform(S0, mu, sigma, T, N, num_simulations)
     )
 
-    # Plot and display results
-    plot_and_display_results(
+    # Calculate summary statistics
+    confidence_interval, percentiles = calculate_summary_stats(
+        final_prices, mean_final_price, std_final_price
+    )
+
+    # Display results
+    display_results(
+        ticker,
+        prediction_days,
+        mu,
+        sigma,
+        S0,
+        mean_final_price,
+        median_final_price,
+        std_final_price,
+        confidence_interval,
+        percentiles,
+    )
+
+    # Plot results
+    plot_results(
         ticker,
         prediction_days,
         simulations,
         final_prices,
         mean_final_price,
         median_final_price,
-        std_final_price,
-        N,
-        mu,
-        sigma,
-        S0,
     )
 
 
