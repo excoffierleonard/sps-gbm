@@ -91,37 +91,6 @@ def simulate_and_perform(S0, mu, sigma, T, N, num_simulations):
     )
 
 
-# Function to calculate and display summary statistics and histogram
-def display_summary_and_histogram(
-    prediction_days,
-    final_prices,
-    mean_final_price,
-    median_final_price,
-    std_final_price,
-    ax_hist=None,
-    target_price=None,
-):
-    confidence_interval, percentiles, probability_of_profit = calculate_summary_stats(
-        final_prices, mean_final_price, std_final_price, target_price
-    )
-
-    print_summary(
-        prediction_days,
-        mean_final_price,
-        median_final_price,
-        std_final_price,
-        confidence_interval,
-        percentiles,
-        probability_of_profit,
-        target_price,
-    )
-
-    if ax_hist:
-        plot_histogram(
-            final_prices, mean_final_price, median_final_price, prediction_days, ax_hist
-        )
-
-
 # Function to calculate summary statistics
 def calculate_summary_stats(
     final_prices,
@@ -141,9 +110,13 @@ def calculate_summary_stats(
     return confidence_interval, calculated_percentiles, probability_of_profit
 
 
-# Function to print summary statistics
-def print_summary(
+# Unified function to display parameters and summary statistics
+def display_results(
+    ticker,
     prediction_days,
+    mu,
+    sigma,
+    S0,
     mean_final_price,
     median_final_price,
     std_final_price,
@@ -152,6 +125,10 @@ def print_summary(
     probability_of_profit=None,
     target_price=None,
 ):
+    print(f"\nStock Ticker: {ticker}")
+    print(f"Annualized Mean Return (µ): {mu:.4f}")
+    print(f"Annualized Volatility (σ): {sigma:.4f}")
+    print(f"Most Recent Closing Price: {S0:.2f}")
     print(f"\nSummary of Predicted Stock Prices after {prediction_days} days:")
     print(f"Mean Final Price: {mean_final_price:.2f}")
     print(f"Median Final Price: {median_final_price:.2f}")
@@ -210,13 +187,6 @@ def plot_simulation(ticker, future_dates, simulations, ax_sim):
     plt.gcf().autofmt_xdate()
 
 
-# Function to display calculated parameters
-def display_parameters(mu, sigma, S0):
-    print(f"Annualized Mean Return (µ): {mu:.4f}")
-    print(f"Annualized Volatility (σ): {sigma:.4f}")
-    print(f"Most Recent Closing Price: {S0:.2f}")
-
-
 # Function to plot and display all results
 def plot_and_display_results(
     ticker,
@@ -227,17 +197,31 @@ def plot_and_display_results(
     median_final_price,
     std_final_price,
     N,
+    mu,
+    sigma,
+    S0,
 ):
     fig, (ax_sim, ax_hist) = plt.subplots(2, 1, figsize=(10, 12))
     future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
     plot_simulation(ticker, future_dates, simulations, ax_sim)
-    display_summary_and_histogram(
+    confidence_interval, percentiles, probability_of_profit = calculate_summary_stats(
+        final_prices, mean_final_price, std_final_price
+    )
+    display_results(
+        ticker,
         prediction_days,
-        final_prices,
+        mu,
+        sigma,
+        S0,
         mean_final_price,
         median_final_price,
         std_final_price,
-        ax_hist=ax_hist,
+        confidence_interval,
+        percentiles,
+        probability_of_profit,
+    )
+    plot_histogram(
+        final_prices, mean_final_price, median_final_price, prediction_days, ax_hist
     )
     plt.tight_layout()
     plt.show()
@@ -252,7 +236,6 @@ def main():
     mu, sigma, S0, T, N = calculate_parameters_and_setup_simulation(
         ticker, start_date, end_date, prediction_days
     )
-    display_parameters(mu, sigma, S0)
 
     # Perform simulations
     simulations, final_prices, mean_final_price, median_final_price, std_final_price = (
@@ -269,6 +252,9 @@ def main():
         median_final_price,
         std_final_price,
         N,
+        mu,
+        sigma,
+        S0,
     )
 
 
