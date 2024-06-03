@@ -1,3 +1,8 @@
+# TODO: Consider alligning prediction days with trading days, rather than just displaying it as steps.
+# TODO: Enhance summary to upside %.
+# TODO: Create complete Stock analysis report and export it in a pretty pdf.
+# TODO: Implement rollover of monte-carlo over past steps to have a rolling prediction and improve model.
+
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
@@ -6,37 +11,7 @@ import yfinance as yf
 from scipy import stats
 
 
-# TODO: Consider alligning prediction days with trading days, rather than just displaying it as steps.
-# TODO: Enhance summary to upside %.
-# TODO: Create complete Stock analysis report and export it in a pretty pdf.
-# TODO: Implement rollover of monte-carlo over past steps to have a rolling prediction and improve model.
-# Function to fetch historical data and calculate mu and sigma
-def calculate_parameters(ticker, start_date, end_date):
-    data = yf.download(ticker, start=start_date, end=end_date)
-    data["Return"] = data["Adj Close"].pct_change()
-    returns = data["Return"].dropna()
-    mu_daily = returns.mean()
-    sigma_daily = returns.std()
-    trading_days = 252
-    mu_annual = (1 + mu_daily) ** trading_days - 1
-    sigma_annual = sigma_daily * np.sqrt(trading_days)
-    return mu_annual, sigma_annual, data["Adj Close"].iloc[-1]
-
-
-# Function to simulate future stock prices
-def simulate_stock_price(S0, mu, sigma, T, N):
-    dt = T / N
-    Z = np.random.standard_normal(N)
-    S = np.zeros(N + 1)
-    S[0] = S0
-    for t in range(1, N + 1):
-        S[t] = S[t - 1] * np.exp(
-            (mu - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * Z[t - 1]
-        )
-    return S
-
-
-# Function to get and default user inputs
+# Function to get user inputs
 def get_inputs():
     ticker = input("Enter the stock ticker: ").strip()
     default_end_date = datetime.today().date()
@@ -52,13 +27,14 @@ def get_inputs():
     if not end_date:
         end_date = default_end_date
 
-    default_prediction_days = 1 * 252
+    default_prediction_days = 252
     prediction_days_input = input(
         f"Enter the prediction period in days [default: {default_prediction_days}]: "
     ).strip()
     prediction_days = (
         int(prediction_days_input) if prediction_days_input else default_prediction_days
     )
+
     default_num_simulations = 1000
     num_simulations_input = input(
         f"Enter the number of simulations to perform [default: {default_num_simulations}]: "
@@ -70,16 +46,80 @@ def get_inputs():
     return ticker, start_date, end_date, prediction_days, num_simulations
 
 
-# Function to perform simulations and display results
-def perform_simulations(S0, mu, sigma, T, N, num_simulations):
-    simulations = [
-        simulate_stock_price(S0, mu, sigma, T, N) for _ in range(num_simulations)
-    ]
-    final_prices = [simulation[-1] for simulation in simulations]
+# Function to fetch historical data, calculate mu and sigma, and set simulation parameters
+def calculate_parameters_and_setup_simulation(
+    ticker, start_date, end_date, prediction_days
+):
+    data = yf.download(ticker, start=start_date, end=end_date)
+    data["Return"] = data["Adj Close"].pct_change()
+    returns = data["Return"].dropna()
+    mu_daily = returns.mean()
+    sigma_daily = returns.std()
+    trading_days = 252
+    mu_annual = (1 + mu_daily) ** trading_days - 1
+    sigma_annual = sigma_daily * np.sqrt(trading_days)
+    S0 = data["Adj Close"].iloc[-1]
+
+    T = prediction_days / trading_days  # Time period in years
+    N = prediction_days  # Number of steps (days to project)
+
+    return mu_annual, sigma_annual, S0, T, N
+
+
+# Function to run and perform simulations
+def simulate_and_perform(S0, mu, sigma, T, N, num_simulations):
+    dt = T / N
+    simulations = np.zeros((num_simulations, N + 1))
+    Z = np.random.standard_normal((num_simulations, N))
+    simulations[:, 0] = S0
+
+    for t in range(1, N + 1):
+        simulations[:, t] = simulations[:, t - 1] * np.exp(
+            (mu - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * Z[:, t - 1]
+        )
+
+    final_prices = simulations[:, -1]
     mean_final_price = np.mean(final_prices)
     median_final_price = np.median(final_prices)
     std_final_price = np.std(final_prices)
-    return simulations, mean_final_price, median_final_price, std_final_price
+    return (
+        simulations,
+        final_prices,
+        mean_final_price,
+        median_final_price,
+        std_final_price,
+    )
+
+
+# Function to calculate and display summary statistics and histogram
+def display_summary_and_histogram(
+    prediction_days,
+    final_prices,
+    mean_final_price,
+    median_final_price,
+    std_final_price,
+    ax_hist=None,
+    target_price=None,
+):
+    confidence_interval, percentiles, probability_of_profit = calculate_summary_stats(
+        final_prices, mean_final_price, std_final_price, target_price
+    )
+
+    print_summary(
+        prediction_days,
+        mean_final_price,
+        median_final_price,
+        std_final_price,
+        confidence_interval,
+        percentiles,
+        probability_of_profit,
+        target_price,
+    )
+
+    if ax_hist:
+        plot_histogram(
+            final_prices, mean_final_price, median_final_price, prediction_days, ax_hist
+        )
 
 
 # Function to calculate summary statistics
@@ -157,43 +197,12 @@ def plot_histogram(
     ax_hist.grid(True)
 
 
-# Refactored display summary function
-def display_summary(
-    prediction_days,
-    final_prices,
-    mean_final_price,
-    median_final_price,
-    std_final_price,
-    ax_hist=None,
-    target_price=None,
-):
-    confidence_interval, percentiles, probability_of_profit = calculate_summary_stats(
-        final_prices, mean_final_price, std_final_price, target_price
-    )
-
-    print_summary(
-        prediction_days,
-        mean_final_price,
-        median_final_price,
-        std_final_price,
-        confidence_interval,
-        percentiles,
-        probability_of_profit,
-        target_price,
-    )
-
-    if ax_hist:
-        plot_histogram(
-            final_prices, mean_final_price, median_final_price, prediction_days, ax_hist
-        )
-
-
-# Function to plot the simulation
+# Function to plot the simulation results
 def plot_simulation(ticker, future_dates, simulations, ax_sim):
     for future_prices in simulations:
         ax_sim.plot(future_dates, future_prices, alpha=0.3)
     ax_sim.set_title(
-        f"Stock Price Simulations for {ticker} using GBM ({len(simulations)} Simulations)"
+        f"Stock Price Simulations for {ticker} using GBM ({simulations.shape[0]} Simulations)"
     )
     ax_sim.set_xlabel("Date")
     ax_sim.set_ylabel("Stock Price")
@@ -208,31 +217,7 @@ def display_parameters(mu, sigma, S0):
     print(f"Most Recent Closing Price: {S0:.2f}")
 
 
-# Function to set simulation parameters
-def set_simulation_parameters(prediction_days):
-    T = prediction_days / 252  # Time period in years
-    N = prediction_days  # Number of steps (days to project)
-    return T, N
-
-
-# Function to run multiple simulations
-def run_simulations(S0, mu, sigma, T, N, num_simulations):
-    simulations = [
-        simulate_stock_price(S0, mu, sigma, T, N) for _ in range(num_simulations)
-    ]
-    final_prices = [simulation[-1] for simulation in simulations]
-    return simulations, final_prices
-
-
-# Function to calculate final statistics
-def calculate_final_stats(final_prices):
-    mean_final_price = np.mean(final_prices)
-    median_final_price = np.median(final_prices)
-    std_final_price = np.std(final_prices)
-    return mean_final_price, median_final_price, std_final_price
-
-
-# Function to plot and display results
+# Function to plot and display all results
 def plot_and_display_results(
     ticker,
     prediction_days,
@@ -246,7 +231,7 @@ def plot_and_display_results(
     fig, (ax_sim, ax_hist) = plt.subplots(2, 1, figsize=(10, 12))
     future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
     plot_simulation(ticker, future_dates, simulations, ax_sim)
-    display_summary(
+    display_summary_and_histogram(
         prediction_days,
         final_prices,
         mean_final_price,
@@ -258,16 +243,23 @@ def plot_and_display_results(
     plt.show()
 
 
-# Refactored main function
+# Main function to orchestrate the workflow
 def main():
+    # Get user inputs
     ticker, start_date, end_date, prediction_days, num_simulations = get_inputs()
-    mu, sigma, S0 = calculate_parameters(ticker, start_date, end_date)
-    display_parameters(mu, sigma, S0)
-    T, N = set_simulation_parameters(prediction_days)
-    simulations, final_prices = run_simulations(S0, mu, sigma, T, N, num_simulations)
-    mean_final_price, median_final_price, std_final_price = calculate_final_stats(
-        final_prices
+
+    # Calculate parameters and set up simulation
+    mu, sigma, S0, T, N = calculate_parameters_and_setup_simulation(
+        ticker, start_date, end_date, prediction_days
     )
+    display_parameters(mu, sigma, S0)
+
+    # Perform simulations
+    simulations, final_prices, mean_final_price, median_final_price, std_final_price = (
+        simulate_and_perform(S0, mu, sigma, T, N, num_simulations)
+    )
+
+    # Plot and display results
     plot_and_display_results(
         ticker,
         prediction_days,
