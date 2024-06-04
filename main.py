@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import numpy as np
 import yfinance as yf
+from matplotlib.gridspec import GridSpec
 from scipy import stats
 
 
@@ -148,7 +149,11 @@ def plot_results(
     N = simulations.shape[1] - 1  # Number of steps
     future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
 
-    fig, (ax_sim, ax_hist) = plt.subplots(1, 2, figsize=(16, 6))  # Side-by-side layout
+    fig = plt.figure(figsize=(16, 6))
+    gs = GridSpec(1, 2, width_ratios=[3, 1], wspace=0)  # Set wspace to 0
+
+    ax_sim = fig.add_subplot(gs[0])
+    ax_hist = fig.add_subplot(gs[1], sharey=ax_sim)
 
     # Plot simulations
     for future_prices in simulations:
@@ -160,12 +165,15 @@ def plot_results(
     ax_sim.set_ylabel("Stock Price")
     ax_sim.grid(True)
 
+    # Ensure the limits are tight around the data
+    ax_sim.set_xlim([future_dates[0], future_dates[-1]])
+    ax_sim.set_ylim([np.min(final_prices), np.max(final_prices)])
+
     # Plot histogram of final prices
     ax_hist.hist(
         final_prices, bins=50, alpha=0.75, edgecolor="k", orientation="horizontal"
     )
     ax_hist.set_title("Distribution of Final Predicted Stock Prices")
-    ax_hist.set_ylabel("Stock Price")
     ax_hist.set_xlabel("Frequency")
     ax_hist.axhline(
         mean_final_price,
@@ -184,13 +192,15 @@ def plot_results(
     ax_hist.legend()
     ax_hist.grid(True)
 
-    # Ensure the y-limits are the same for both plots
-    ax_hist.set_ylim(ax_sim.get_ylim())
+    # Hide y-axis ticks labels of the histogram to avoid duplication
+    plt.setp(ax_hist.get_yticklabels(), visible=False)  # Hide yticks for hist plot
+
+    # Reduce margins to make the plots appear connected
+    plt.subplots_adjust(left=0.05, right=0.95, top=0.90, bottom=0.10, wspace=0)
 
     # Set a title for the entire figure
     fig.suptitle(f"Stock Price Simulation and Prediction for {ticker}", fontsize=16)
 
-    plt.tight_layout()
     plt.show()
 
 
