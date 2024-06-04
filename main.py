@@ -1,6 +1,5 @@
 # TODO: Consider alligning prediction days with trading days, rather than just displaying it as steps.
-# TODO: Create complete Stock analysis report and export it in a pretty pdf.
-# TODO: Implement rollover of monte-carlo over past steps to have a rolling prediction and improve model.
+# TODO: Condiser removing lines over stock simulation part and putting the mean display number on the right of the distribution.
 
 from datetime import datetime, timedelta
 
