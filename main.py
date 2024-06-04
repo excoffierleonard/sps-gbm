@@ -165,6 +165,22 @@ def plot_results(
     ax_sim.set_ylabel("Stock Price")
     ax_sim.grid(True)
 
+    # Plot horizontal lines for mean and median prices on the simulation plot
+    ax_sim.axhline(
+        mean_final_price,
+        color="r",
+        linestyle="dashed",
+        linewidth=1,
+        label="Mean Final Price",
+    )
+    ax_sim.axhline(
+        median_final_price,
+        color="g",
+        linestyle="dashed",
+        linewidth=1,
+        label="Median Final Price",
+    )
+
     # Ensure the limits are tight around the data
     ax_sim.set_xlim([future_dates[0], future_dates[-1]])
     ax_sim.set_ylim([np.min(final_prices), np.max(final_prices)])
