@@ -1,5 +1,4 @@
 # TODO: Consider alligning prediction days with trading days, rather than just displaying it as steps.
-# TODO: Enhance summary to upside %.
 # TODO: Create complete Stock analysis report and export it in a pretty pdf.
 # TODO: Implement rollover of monte-carlo over past steps to have a rolling prediction and improve model.
 
@@ -94,6 +93,7 @@ def simulate_and_perform(S0, mu, sigma, T, N, num_simulations):
 
 # Function to calculate summary statistics
 def calculate_summary_stats(
+    S0,
     final_prices,
     mean_final_price,
     std_final_price,
@@ -104,7 +104,8 @@ def calculate_summary_stats(
         confidence_level, loc=mean_final_price, scale=std_final_price
     )
     calculated_percentiles = np.percentile(final_prices, percentiles)
-    return confidence_interval, calculated_percentiles
+    percent_change = ((mean_final_price - S0) / S0) * 100
+    return confidence_interval, calculated_percentiles, percent_change
 
 
 # Unified function to display parameters and summary statistics
@@ -119,13 +120,19 @@ def display_results(
     std_final_price,
     confidence_interval,
     percentiles,
+    percent_change,
 ):
     print(f"\nStock Ticker: {ticker}")
     print(f"Annualized Mean Return (µ): {mu:.4f}")
     print(f"Annualized Volatility (σ): {sigma:.4f}")
     print(f"Most Recent Closing Price: {S0:.2f}")
     print(f"\nSummary of Predicted Stock Prices after {prediction_days} days:")
-    print(f"Mean Final Price: {mean_final_price:.2f}")
+
+    # Determine the sign for the percentage change
+    sign = "+" if percent_change >= 0 else "-"
+    percent_change_abs = abs(percent_change)
+
+    print(f"Mean Final Price: {mean_final_price:.2f} ({sign}{percent_change_abs:.2f}%)")
     print(f"Median Final Price: {median_final_price:.2f}")
     print(f"Standard Deviation of Final Prices: {std_final_price:.2f}")
     print(
@@ -238,8 +245,8 @@ def main():
     )
 
     # Calculate summary statistics
-    confidence_interval, percentiles = calculate_summary_stats(
-        final_prices, mean_final_price, std_final_price
+    confidence_interval, percentiles, percent_change = calculate_summary_stats(
+        S0, final_prices, mean_final_price, std_final_price
     )
 
     # Display results
@@ -254,6 +261,7 @@ def main():
         std_final_price,
         confidence_interval,
         percentiles,
+        percent_change,
     )
 
     # Plot results
