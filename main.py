@@ -172,20 +172,37 @@ def plot_results(
     ax_sim.set_ylabel("Stock Price")
     ax_sim.grid(True)
 
+    # Color code the mean final price based on increase or decrease
+    color_mean = "green" if mean_final_price >= simulations[:, 0][0] else "red"
+
     # Plot horizontal lines for mean and median prices on the simulation plot
     ax_sim.axhline(
         mean_final_price,
-        color="r",
+        color=color_mean,
         linestyle="dashed",
-        linewidth=1,
+        linewidth=1,  # Thinner line
         label="Mean Final Price",
     )
     ax_sim.axhline(
         median_final_price,
-        color="g",
+        color="blue",
         linestyle="dashed",
-        linewidth=1,
+        linewidth=1,  # Thinner line
         label="Median Final Price",
+    )
+
+    # Annotate the mean final price on the y-axis
+    ax_sim.annotate(
+        f"{mean_final_price:.2f}",
+        xy=(0, mean_final_price),
+        xycoords=("axes fraction", "data"),
+        xytext=(-5, 0),
+        textcoords="offset points",
+        color=color_mean,
+        ha="right",
+        va="center",
+        fontsize=10,
+        bbox=dict(facecolor="white", edgecolor=color_mean, boxstyle="round,pad=0.3"),
     )
 
     # Ensure the limits are tight around the data and prediction days
@@ -202,16 +219,16 @@ def plot_results(
     ax_hist.set_xlabel("Frequency")
     ax_hist.axhline(
         mean_final_price,
-        color="r",
+        color=color_mean,
         linestyle="dashed",
-        linewidth=1,
+        linewidth=1,  # Thinner line
         label="Mean Final Price",
     )
     ax_hist.axhline(
         median_final_price,
-        color="g",
+        color="blue",
         linestyle="dashed",
-        linewidth=1,
+        linewidth=1,  # Thinner line
         label="Median Final Price",
     )
     ax_hist.legend()
@@ -221,7 +238,7 @@ def plot_results(
     plt.setp(ax_hist.get_yticklabels(), visible=False)  # Hide yticks for hist plot
 
     # Reduce margins to make the plots appear connected
-    plt.subplots_adjust(left=0.05, right=0.95, top=0.90, bottom=0.10, wspace=0)
+    plt.subplots_adjust(left=0.1, right=0.95, top=0.90, bottom=0.10, wspace=0)
 
     # Set a title for the entire figure
     fig.suptitle(f"Stock Price Simulation and Prediction for {ticker}", fontsize=16)
