@@ -161,20 +161,20 @@ def plot_results(
     ax_sim.grid(True)
 
     # Plot histogram of final prices
-    ax_hist.hist(final_prices, bins=50, alpha=0.75, edgecolor="k")
-    ax_hist.set_title(
-        f"Distribution of Final Predicted Stock Prices after {prediction_days} days"
+    ax_hist.hist(
+        final_prices, bins=50, alpha=0.75, edgecolor="k", orientation="horizontal"
     )
-    ax_hist.set_xlabel("Stock Price")
-    ax_hist.set_ylabel("Frequency")
-    ax_hist.axvline(
+    ax_hist.set_title("Distribution of Final Predicted Stock Prices")
+    ax_hist.set_ylabel("Stock Price")
+    ax_hist.set_xlabel("Frequency")
+    ax_hist.axhline(
         mean_final_price,
         color="r",
         linestyle="dashed",
         linewidth=1,
         label="Mean Final Price",
     )
-    ax_hist.axvline(
+    ax_hist.axhline(
         median_final_price,
         color="g",
         linestyle="dashed",
@@ -183,6 +183,9 @@ def plot_results(
     )
     ax_hist.legend()
     ax_hist.grid(True)
+
+    # Ensure the y-limits are the same for both plots
+    ax_hist.set_ylim(ax_sim.get_ylim())
 
     # Set a title for the entire figure
     fig.suptitle(f"Stock Price Simulation and Prediction for {ticker}", fontsize=16)
