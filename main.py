@@ -181,8 +181,10 @@ def plot_results(
         label="Median Final Price",
     )
 
-    # Ensure the limits are tight around the data
-    ax_sim.set_xlim([future_dates[0], future_dates[-1]])
+    # Ensure the limits are tight around the data and prediction days
+    ax_sim.set_xlim(
+        [future_dates[0], future_dates[0] + timedelta(days=prediction_days)]
+    )
     ax_sim.set_ylim([np.min(final_prices), np.max(final_prices)])
 
     # Plot histogram of final prices
