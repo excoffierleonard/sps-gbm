@@ -88,11 +88,16 @@ def calculate_parameters_and_setup_simulation(
         end_date=datetime.today().date() + timedelta(days=prediction_days),
     )
     trading_days_count = len(market_schedule)
+    trading_dates = market_schedule.index.tolist()
+
+    # Add initial date
+    last_historical_date = data.index[-1].date()
+    trading_dates.insert(0, last_historical_date)
 
     T = trading_days_count / trading_days  # Time period in years
     N = trading_days_count  # Number of steps (days to project)
 
-    return mu_annual, sigma_annual, S0, T, N
+    return mu_annual, sigma_annual, S0, T, N, trading_dates
 
 
 # Function to run and perform simulations
@@ -181,9 +186,9 @@ def plot_results(
     final_prices,
     mean_final_price,
     median_final_price,
+    trading_dates,  # Add trading dates as input
 ):
     N = simulations.shape[1] - 1  # Number of steps
-    future_dates = [datetime.today().date() + timedelta(days=i) for i in range(N + 1)]
 
     fig = plt.figure(figsize=(16, 6))
     gs = GridSpec(1, 2, width_ratios=[3, 1], wspace=0)  # Set wspace to 0
@@ -193,7 +198,7 @@ def plot_results(
 
     # Plot simulations
     for future_prices in simulations:
-        ax_sim.plot(future_dates, future_prices, alpha=0.3)
+        ax_sim.plot(trading_dates, future_prices, alpha=0.3)
     ax_sim.set_title(
         f"Stock Price Simulations for {ticker} using GBM ({simulations.shape[0]} Simulations)"
     )
@@ -202,9 +207,7 @@ def plot_results(
     ax_sim.grid(True)
 
     # Ensure the limits are tight around the data and prediction days
-    ax_sim.set_xlim(
-        [future_dates[0], future_dates[0] + timedelta(days=prediction_days)]
-    )
+    ax_sim.set_xlim([trading_dates[0], trading_dates[-1]])
     ax_sim.set_ylim([np.min(final_prices), np.max(final_prices)])
 
     # Plot histogram of final prices
@@ -214,7 +217,7 @@ def plot_results(
     ax_hist.set_title("Distribution of Final Predicted Stock Prices")
     ax_hist.set_xlabel("Frequency")
 
-    # Color code the mean final price based on increase or decrease
+    # Color code the mean final price based on increased or decrease
     color_mean = "green" if mean_final_price >= simulations[:, 0][0] else "red"
 
     ax_hist.axhline(
@@ -266,7 +269,7 @@ def main():
     ticker, start_date, end_date, prediction_days, num_simulations = get_inputs()
 
     # Calculate parameters and set up simulation
-    mu, sigma, S0, T, N = calculate_parameters_and_setup_simulation(
+    mu, sigma, S0, T, N, trading_dates = calculate_parameters_and_setup_simulation(
         ticker, start_date, end_date, prediction_days
     )
 
@@ -303,6 +306,7 @@ def main():
         final_prices,
         mean_final_price,
         median_final_price,
+        trading_dates,  # Pass the trading_dates
     )
 
 
