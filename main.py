@@ -76,9 +76,14 @@ def calculate_parameters_and_setup_simulation(
     returns = data["Return"].dropna()
     mu_daily = returns.mean()
     sigma_daily = returns.std()
-    trading_days = 252
-    mu_annual = (1 + mu_daily) ** trading_days - 1
-    sigma_annual = sigma_daily * np.sqrt(trading_days)
+
+    # Calculate the number of trading days in the historical data
+    trading_days_per_year = len(returns) / (
+        (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days / 365.25
+    )
+
+    mu_annual = (1 + mu_daily) ** trading_days_per_year - 1
+    sigma_annual = sigma_daily * np.sqrt(trading_days_per_year)
     S0 = data["Adj Close"].iloc[-1]
 
     # Get the appropriate market calendar for the stock ticker
@@ -87,14 +92,16 @@ def calculate_parameters_and_setup_simulation(
         start_date=datetime.today().date(),
         end_date=datetime.today().date() + timedelta(days=prediction_days),
     )
-    trading_days_count = len(market_schedule)
+    trading_days_count = len(
+        market_schedule
+    )  # Actual trading days count for the prediction period
     trading_dates = market_schedule.index.tolist()
 
     # Add initial date
     last_historical_date = data.index[-1].date()
     trading_dates.insert(0, last_historical_date)
 
-    T = trading_days_count / trading_days  # Time period in years
+    T = trading_days_count / trading_days_per_year  # Time period in years
     N = trading_days_count  # Number of steps (days to project)
 
     return mu_annual, sigma_annual, S0, T, N, trading_dates
