@@ -22,10 +22,11 @@ This project simulates the future stock prices of a user-specified ticker using 
 
 ## Requirements
 
-- Python 3.x
+- Python 3
 - Matplotlib
-- NumPy
-- yfinance
+- Pandas
+- Pandas Market Calendars
+- Yfinance
 - SciPy
 
 ## Installation
