@@ -1,3 +1,4 @@
+# TODO: Rotate dates so its prettier.
 # TODO: Implement some data validation for the inputs.
 # TODO: Gracefully handle exit and other errors in the main function.
 # FIXME: Stop rendering of non-trading days on the plot.
