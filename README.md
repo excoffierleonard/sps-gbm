@@ -1,6 +1,6 @@
 # Stock Price Simulation using Geometric Brownian Motion (GBM)
 
-<!-- TODO: Update Example, when adjusted for trading days only, and when lines fixed. -->
+<!-- TODO: Rewrite whole README.md when program major fix done. -->
 
 ## Overview
 
