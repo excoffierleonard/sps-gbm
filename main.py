@@ -1,12 +1,35 @@
-# TODO: Consider alligning prediction days with trading days, rather than just displaying it as steps.
-
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import pandas_market_calendars as mcal
 import yfinance as yf
 from matplotlib.gridspec import GridSpec
 from scipy import stats
+
+
+# Function to get the market calendar based on the stock ticker
+def get_market_calendar(ticker):
+    stock = yf.Ticker(ticker)
+    exchange = stock.info.get("exchange")
+
+    if not exchange:
+        print("Exchange not found, defaulting to NYSE")
+        exchange = "NYSE"  # Default to NYSE if not found
+
+    # Map yfinance exchange info to pandas_market_calendars
+    if exchange in ["NMS", "NASDAQ"]:
+        return mcal.get_calendar("NASDAQ")
+    elif exchange in ["NYQ", "NYSE"]:
+        return mcal.get_calendar("NYSE")
+    elif exchange in ["AMS", "AEX"]:
+        return mcal.get_calendar("Euronext")
+    elif exchange in ["LSE", "LON"]:
+        return mcal.get_calendar("LSE")
+    else:
+        print("Exchange calendar not found, defaulting to NYSE")
+        return mcal.get_calendar("NYSE")  # Default fallback
 
 
 # Function to get user inputs
@@ -25,7 +48,7 @@ def get_inputs():
     if not end_date:
         end_date = default_end_date
 
-    default_prediction_days = 252
+    default_prediction_days = 365  # Adjusted default prediction period
     prediction_days_input = input(
         f"Enter the prediction period in days [default: {default_prediction_days}]: "
     ).strip()
@@ -58,8 +81,16 @@ def calculate_parameters_and_setup_simulation(
     sigma_annual = sigma_daily * np.sqrt(trading_days)
     S0 = data["Adj Close"].iloc[-1]
 
-    T = prediction_days / trading_days  # Time period in years
-    N = prediction_days  # Number of steps (days to project)
+    # Get the appropriate market calendar for the stock ticker
+    market_calendar = get_market_calendar(ticker)
+    market_schedule = market_calendar.schedule(
+        start_date=datetime.today().date(),
+        end_date=datetime.today().date() + timedelta(days=prediction_days),
+    )
+    trading_days_count = len(market_schedule)
+
+    T = trading_days_count / trading_days  # Time period in years
+    N = trading_days_count  # Number of steps (days to project)
 
     return mu_annual, sigma_annual, S0, T, N
 
