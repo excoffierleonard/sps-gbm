@@ -262,7 +262,7 @@ def plot_results(
     plt.setp(ax_hist.get_yticklabels(), visible=False)  # Hide yticks for hist plot
 
     # Reduce margins to make the plots appear connected
-    plt.subplots_adjust(left=0.1, right=0.95, top=0.90, bottom=0.10, wspace=0)
+    plt.subplots_adjust(left=0.05, right=0.95, top=0.90, bottom=0.10, wspace=0)
 
     # Set a title for the entire figure
     fig.suptitle(f"Stock Price Simulation and Prediction for {ticker}", fontsize=16)
