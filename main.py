@@ -164,6 +164,7 @@ def plot_results(
         ylim=[np.min(final_prices), np.max(final_prices)],
     )
     ax_sim.grid(True)
+    plt.setp(ax_sim.xaxis.get_majorticklabels(), rotation=45)
 
     ax_hist.hist(
         final_prices, bins=50, alpha=0.75, edgecolor="k", orientation="horizontal"
@@ -202,7 +203,7 @@ def plot_results(
         bbox=dict(facecolor="white", edgecolor=color_mean, boxstyle="round,pad=0.3"),
     )
     plt.setp(ax_hist.get_yticklabels(), visible=False)
-    plt.subplots_adjust(left=0.05, right=0.95, top=0.90, bottom=0.10, wspace=0)
+    plt.subplots_adjust(left=0.05, right=0.95, top=0.85, bottom=0.15, wspace=0)
     fig.suptitle(f"Stock Price Simulation and Prediction for {ticker}", fontsize=16)
     plt.show()
 
