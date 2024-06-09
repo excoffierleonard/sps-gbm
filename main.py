@@ -1,5 +1,6 @@
 # TODO: Implement some data validation for the inputs.
 # TODO: Gracefully handle exit and other errors in the main function.
+# FIXME: When end date is in the past, the simulation is not correct it does not start at the end date.
 # FIXME: Stop rendering of non-trading days on the plot.
 
 from datetime import datetime, timedelta
