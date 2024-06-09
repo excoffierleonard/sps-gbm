@@ -1,4 +1,3 @@
-# TODO: Rotate dates so its prettier.
 # TODO: Implement some data validation for the inputs.
 # TODO: Gracefully handle exit and other errors in the main function.
 # FIXME: Stop rendering of non-trading days on the plot.
@@ -30,29 +29,64 @@ def get_market_calendar(ticker):
 
 
 def get_inputs():
+    def is_valid_date(date_str):
+        try:
+            datetime.strptime(date_str, "%Y-%m-%d")
+            return True
+        except ValueError:
+            return False
+
+    def is_positive_integer(value):
+        try:
+            return int(value) > 0
+        except ValueError:
+            return False
+
     days_in_year = 365
     default_simulations_count = 1000
     today = datetime.today().date()
     default_start_date = today - timedelta(days=5 * days_in_year)
-    ticker = input("Enter the stock ticker: ").strip()
-    start_date = input(
-        f"Enter start date (YYYY-MM-DD) [default: {default_start_date}]: "
-    ).strip() or str(default_start_date)
-    end_date = input(
-        f"Enter end date (YYYY-MM-DD) [default: {today}]: "
-    ).strip() or str(today)
-    prediction_days = int(
-        input(
+
+    while True:
+        ticker = input("Enter the stock ticker: ").strip()
+        if ticker:
+            break
+        print("Error: Stock ticker cannot be empty.")
+
+    while True:
+        start_date = input(
+            f"Enter start date (YYYY-MM-DD) [default: {default_start_date}]: "
+        ).strip() or str(default_start_date)
+        if is_valid_date(start_date):
+            break
+        print("Error: Invalid start date format. Please use YYYY-MM-DD.")
+
+    while True:
+        end_date = input(
+            f"Enter end date (YYYY-MM-DD) [default: {today}]: "
+        ).strip() or str(today)
+        if is_valid_date(end_date):
+            break
+        print("Error: Invalid end date format. Please use YYYY-MM-DD.")
+
+    while True:
+        prediction_days = input(
             f"Enter the prediction period in days [default: {days_in_year}]: "
-        ).strip()
-        or days_in_year
-    )
-    num_simulations = int(
-        input(
+        ).strip() or str(days_in_year)
+        if is_positive_integer(prediction_days):
+            prediction_days = int(prediction_days)
+            break
+        print("Error: Prediction period must be a positive integer.")
+
+    while True:
+        num_simulations = input(
             f"Enter the number of simulations [default: {default_simulations_count}]: "
-        ).strip()
-        or default_simulations_count
-    )
+        ).strip() or str(default_simulations_count)
+        if is_positive_integer(num_simulations):
+            num_simulations = int(num_simulations)
+            break
+        print("Error: Number of simulations must be a positive integer.")
+
     return (
         ticker,
         start_date,
