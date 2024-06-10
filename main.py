@@ -233,7 +233,10 @@ def plot_results(
     # Plot simulations
     for future_prices in simulations:
         ax_sim.plot(
-            whole_dates, np.concatenate((historical_prices, future_prices)), alpha=0.3
+            trading_dates,
+            future_prices,
+            alpha=0.3,
+            color="gray",
         )
     ax_sim.set(
         title=f"Stock Price Simulations for {ticker}",
