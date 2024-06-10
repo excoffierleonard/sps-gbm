@@ -1,5 +1,5 @@
-# TODO: Implement some data validation for the inputs.
 # TODO: Gracefully handle exit and other errors in the main function.
+# TODO: Show previous stock movements of length of the data used for simulation.
 # FIXME: When end date is in the past, the simulation is not correct it does not start at the end date.
 # FIXME: Stop rendering of non-trading days on the plot.
 
@@ -43,6 +43,13 @@ def get_inputs():
         except ValueError:
             return False
 
+    def is_existing_ticker(ticker):
+        try:
+            stock = yf.Ticker(ticker)
+            return not stock.history(period="1d").empty
+        except Exception as e:
+            return False
+
     days_in_year = 365
     default_simulations_count = 1000
     today = datetime.today().date()
@@ -51,24 +58,44 @@ def get_inputs():
     while True:
         ticker = input("Enter the stock ticker: ").strip()
         if ticker:
-            break
-        print("Error: Stock ticker cannot be empty.")
+            if is_existing_ticker(ticker):
+                break
+            else:
+                print(
+                    "Error: The stock ticker does not exist. Please enter a valid ticker."
+                )
+        else:
+            print("Error: Stock ticker cannot be empty.")
 
     while True:
         start_date = input(
             f"Enter start date (YYYY-MM-DD) [default: {default_start_date}]: "
         ).strip() or str(default_start_date)
         if is_valid_date(start_date):
-            break
-        print("Error: Invalid start date format. Please use YYYY-MM-DD.")
+            if datetime.strptime(start_date, "%Y-%m-%d").date() <= today:
+                break
+            else:
+                print("Error: Start date cannot be in the future.")
+        else:
+            print("Error: Invalid start date format. Please use YYYY-MM-DD.")
 
     while True:
         end_date = input(
             f"Enter end date (YYYY-MM-DD) [default: {today}]: "
         ).strip() or str(today)
         if is_valid_date(end_date):
-            break
-        print("Error: Invalid end date format. Please use YYYY-MM-DD.")
+            if datetime.strptime(end_date, "%Y-%m-%d").date() <= today:
+                if (
+                    datetime.strptime(end_date, "%Y-%m-%d").date()
+                    >= datetime.strptime(start_date, "%Y-%m-%d").date()
+                ):
+                    break
+                else:
+                    print("Error: End date cannot be before start date.")
+            else:
+                print("Error: End date cannot be in the future.")
+        else:
+            print("Error: Invalid end date format. Please use YYYY-MM-DD.")
 
     while True:
         prediction_days = input(
