@@ -143,7 +143,8 @@ def calculate_parameters_and_setup_simulation(
     trading_dates = [market_schedule.index[0].date()] + market_schedule.index.tolist()
     T, N = trading_days_count / trading_days_per_year, trading_days_count
 
-    return mu_annual, sigma_annual, S0, T, N, trading_dates
+    # Return historical data along with other parameters
+    return mu_annual, sigma_annual, S0, T, N, trading_dates, data
 
 
 def simulate_and_perform(S0, mu, sigma, T, N, num_simulations):
@@ -209,20 +210,43 @@ def plot_results(
     mean_final_price,
     median_final_price,
     trading_dates,
+    historical_data,
 ):
     fig, (ax_sim, ax_hist) = plt.subplots(
         1, 2, figsize=(16, 6), gridspec_kw={"width_ratios": [3, 1]}
     )
 
+    # Extract historical dates and prices from data
+    initial_dates = historical_data.index
+    historical_prices = historical_data["Adj Close"].values
+    whole_dates = initial_dates.append(pd.to_datetime(trading_dates))
+
+    # Plot historical prices
+    ax_sim.plot(
+        initial_dates,
+        historical_prices,
+        color="blue",
+        alpha=1.0,
+        label="Historical Prices",
+    )
+
+    # Plot simulations
     for future_prices in simulations:
-        ax_sim.plot(trading_dates, future_prices, alpha=0.3)
+        ax_sim.plot(
+            whole_dates, np.concatenate((historical_prices, future_prices)), alpha=0.3
+        )
     ax_sim.set(
         title=f"Stock Price Simulations for {ticker}",
         xlabel="Date",
         ylabel="Stock Price",
-        xlim=[trading_dates[0], trading_dates[-1]],
-        ylim=[np.min(simulations), np.max(simulations)],
+        xlim=[whole_dates[0], whole_dates[-1]],
+        ylim=[
+            np.min(np.concatenate((historical_prices, simulations.flatten()))),
+            np.max(simulations),
+        ],
     )
+
+    ax_sim.legend(loc="upper left")
     ax_sim.grid(True)
     plt.setp(ax_sim.xaxis.get_majorticklabels(), rotation=45)
 
@@ -272,8 +296,10 @@ def main():
     try:
         ticker, start_date, end_date, prediction_days, num_simulations = get_inputs()
 
-        mu, sigma, S0, T, N, trading_dates = calculate_parameters_and_setup_simulation(
-            ticker, start_date, end_date, prediction_days
+        mu, sigma, S0, T, N, trading_dates, historical_data = (
+            calculate_parameters_and_setup_simulation(
+                ticker, start_date, end_date, prediction_days
+            )
         )
 
         (
@@ -310,6 +336,7 @@ def main():
             mean_final_price,
             median_final_price,
             trading_dates,
+            historical_data,
         )
     except KeyboardInterrupt:
         print("\nOperation canceled by user.")
