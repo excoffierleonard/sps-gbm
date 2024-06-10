@@ -1,4 +1,4 @@
-# TODO: Show previous stock movements of length of the data used for simulation.
+# FIXME: Fix plot function so that the simulation step 0 shows as the last historical closing price and displays correctly.
 # FIXME: Stop rendering of non-trading days on the plot.
 
 from datetime import datetime, timedelta
