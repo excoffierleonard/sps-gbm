@@ -271,38 +271,54 @@ def plot_results(
 
 
 def main():
-    ticker, start_date, end_date, prediction_days, num_simulations = get_inputs()
-    mu, sigma, S0, T, N, trading_dates = calculate_parameters_and_setup_simulation(
-        ticker, start_date, end_date, prediction_days
-    )
-    simulations, final_prices, mean_final_price, median_final_price, std_final_price = (
-        simulate_and_perform(S0, mu, sigma, T, N, num_simulations)
-    )
-    confidence_interval, percentiles, percent_change = calculate_summary_stats(
-        S0, final_prices, mean_final_price, std_final_price
-    )
-    display_results(
-        ticker,
-        prediction_days,
-        mu,
-        sigma,
-        S0,
-        mean_final_price,
-        median_final_price,
-        std_final_price,
-        confidence_interval,
-        percentiles,
-        percent_change,
-    )
-    plot_results(
-        ticker,
-        S0,
-        simulations,
-        final_prices,
-        mean_final_price,
-        median_final_price,
-        trading_dates,
-    )
+    try:
+        ticker, start_date, end_date, prediction_days, num_simulations = get_inputs()
+
+        mu, sigma, S0, T, N, trading_dates = calculate_parameters_and_setup_simulation(
+            ticker, start_date, end_date, prediction_days
+        )
+
+        (
+            simulations,
+            final_prices,
+            mean_final_price,
+            median_final_price,
+            std_final_price,
+        ) = simulate_and_perform(S0, mu, sigma, T, N, num_simulations)
+
+        confidence_interval, percentiles, percent_change = calculate_summary_stats(
+            S0, final_prices, mean_final_price, std_final_price
+        )
+
+        display_results(
+            ticker,
+            prediction_days,
+            mu,
+            sigma,
+            S0,
+            mean_final_price,
+            median_final_price,
+            std_final_price,
+            confidence_interval,
+            percentiles,
+            percent_change,
+        )
+
+        plot_results(
+            ticker,
+            S0,
+            simulations,
+            final_prices,
+            mean_final_price,
+            median_final_price,
+            trading_dates,
+        )
+    except KeyboardInterrupt:
+        print("\nOperation canceled by user.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        print("Exiting program.")
 
 
 if __name__ == "__main__":
