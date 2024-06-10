@@ -1,4 +1,3 @@
-# TODO: Gracefully handle exit and other errors in the main function.
 # TODO: Show previous stock movements of length of the data used for simulation.
 # FIXME: When end date is in the past, the simulation is not correct it does not start at the end date.
 # FIXME: Stop rendering of non-trading days on the plot.
