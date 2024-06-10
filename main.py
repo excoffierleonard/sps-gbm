@@ -226,18 +226,13 @@ def plot_results(
         initial_dates,
         historical_prices,
         color="blue",
-        alpha=1.0,
+        alpha=0.5,
         label="Historical Prices",
     )
 
     # Plot simulations
     for future_prices in simulations:
-        ax_sim.plot(
-            trading_dates,
-            future_prices,
-            alpha=0.3,
-            color="gray",
-        )
+        ax_sim.plot(trading_dates, future_prices, alpha=0.3)
     ax_sim.set(
         title=f"Stock Price Simulations for {ticker}",
         xlabel="Date",
