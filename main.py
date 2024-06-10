@@ -1,5 +1,4 @@
 # TODO: Show previous stock movements of length of the data used for simulation.
-# FIXME: When end date is in the past, the simulation is not correct it does not start at the end date.
 # FIXME: Stop rendering of non-trading days on the plot.
 
 from datetime import datetime, timedelta
@@ -135,13 +134,13 @@ def calculate_parameters_and_setup_simulation(
     sigma_annual = sigma_daily * np.sqrt(trading_days_per_year)
     S0 = data["Adj Close"].iloc[-1]
 
-    today = datetime.today().date()
     market_calendar = get_market_calendar(ticker)
     market_schedule = market_calendar.schedule(
-        start_date=today, end_date=today + timedelta(days=prediction_days)
+        start_date=pd.to_datetime(end_date),
+        end_date=pd.to_datetime(end_date) + timedelta(days=prediction_days),
     )
     trading_days_count = len(market_schedule)
-    trading_dates = [data.index[-1].date()] + market_schedule.index.tolist()
+    trading_dates = [market_schedule.index[0].date()] + market_schedule.index.tolist()
     T, N = trading_days_count / trading_days_per_year, trading_days_count
 
     return mu_annual, sigma_annual, S0, T, N, trading_dates
@@ -222,7 +221,7 @@ def plot_results(
         xlabel="Date",
         ylabel="Stock Price",
         xlim=[trading_dates[0], trading_dates[-1]],
-        ylim=[np.min(final_prices), np.max(final_prices)],
+        ylim=[np.min(simulations), np.max(simulations)],
     )
     ax_sim.grid(True)
     plt.setp(ax_sim.xaxis.get_majorticklabels(), rotation=45)
