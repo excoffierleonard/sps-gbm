@@ -1,5 +1,3 @@
-# FIXME: Stop rendering of non-trading days on the plot, the issue is likely on the proportional time delta rendering rather that equidistantly indexing the data points.
-
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
@@ -206,6 +204,7 @@ def display_results(
     )
 
 
+# FIXME: Stop rendering of non-trading days on the plot, the issue is likely on the proportional time delta rendering rather that equidistantly indexing the data points.
 def plot_results(
     ticker,
     S0,
