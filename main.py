@@ -9,6 +9,10 @@ import pandas_market_calendars as mcal
 import yfinance as yf
 from scipy import stats
 
+DAYS_IN_YEAR = 365
+HISTORICAL_DATA_PERIOD = 1 * DAYS_IN_YEAR
+DEFAULT_SIMULATIONS_COUNT = 1000
+
 
 def get_inputs():
     def is_valid_date(date_str):
@@ -31,10 +35,8 @@ def get_inputs():
         except Exception:
             return False
 
-    days_in_year = 365
     today = datetime.today().date()
-    default_start_date = today - timedelta(days=5 * days_in_year)
-    default_simulations_count = 1000
+    default_start_date = today - timedelta(days=HISTORICAL_DATA_PERIOD)
 
     while True:
         ticker = input("Enter the stock ticker: ").strip()
@@ -59,11 +61,11 @@ def get_inputs():
         end_date = input(
             f"Enter end date (YYYY-MM-DD) [default: {today}]: "
         ).strip() or str(today)
+        end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date()
         if (
             is_valid_date(end_date)
-            and datetime.strptime(end_date, "%Y-%m-%d").date() <= today
-            and datetime.strptime(end_date, "%Y-%m-%d").date()
-            >= datetime.strptime(start_date, "%Y-%m-%d").date()
+            and end_date_obj <= today
+            and end_date_obj >= datetime.strptime(start_date, "%Y-%m-%d").date()
         ):
             break
         print(
@@ -72,8 +74,8 @@ def get_inputs():
 
     while True:
         prediction_days = input(
-            f"Enter the prediction period in days [default: {days_in_year}]: "
-        ).strip() or str(days_in_year)
+            f"Enter the prediction period in days [default: {DAYS_IN_YEAR}]: "
+        ).strip() or str(DAYS_IN_YEAR)
         if is_positive_integer(prediction_days):
             prediction_days = int(prediction_days)
             break
@@ -81,8 +83,8 @@ def get_inputs():
 
     while True:
         num_simulations = input(
-            f"Enter the number of simulations [default: {default_simulations_count}]: "
-        ).strip() or str(default_simulations_count)
+            f"Enter the number of simulations [default: {DEFAULT_SIMULATIONS_COUNT}]: "
+        ).strip() or str(DEFAULT_SIMULATIONS_COUNT)
         if is_positive_integer(num_simulations):
             num_simulations = int(num_simulations)
             break
@@ -113,7 +115,7 @@ def calculate_parameters_and_setup_simulation(
     returns = data["Adj Close"].pct_change().dropna()
     mu_daily, sigma_daily = returns.mean(), returns.std()
     actual_days = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
-    trading_days_per_year = len(returns) / actual_days * 365
+    trading_days_per_year = len(returns) / actual_days * DAYS_IN_YEAR
     mu_annual = ((1 + mu_daily) ** trading_days_per_year) - 1
     sigma_annual = sigma_daily * np.sqrt(trading_days_per_year)
     S0 = data["Adj Close"].iloc[-1]
