@@ -1,5 +1,4 @@
 # FIXME: Stop rendering of non-trading days on the plot, the issue is likely on the proportional time delta rendering rather that equidistantly indexing the data points.
-# FIXME: Histogram and end of simulation no longer connects correctly.
 
 from datetime import datetime, timedelta
 
@@ -251,7 +250,6 @@ def plot_results(
         label="Median Final Price",
     )
     ax_hist.legend()
-
     ax_hist.annotate(
         f"{mean_final_price:.2f}",
         xy=(1, mean_final_price),
@@ -264,7 +262,7 @@ def plot_results(
         fontsize=10,
         bbox=dict(facecolor="white", edgecolor=color_mean, boxstyle="round,pad=0.3"),
     )
-
+    ax_hist.set_ylim(ax_sim.get_ylim())
     plt.setp(ax_hist.get_yticklabels(), visible=False)
     plt.subplots_adjust(left=0.05, right=0.95, top=0.85, bottom=0.15, wspace=0)
     fig.suptitle(f"Stock Price Simulation and Prediction for {ticker}", fontsize=16)
