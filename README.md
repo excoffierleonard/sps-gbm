@@ -32,23 +32,23 @@ This project simulates the future stock prices of a user-specified ticker using 
 
 1. Clone the repository:
 
-   \`\`\`bash
+   ```bash
    git clone https://github.com/excoffierleonard/sps-gbm.git
    cd sps-gbm
-   \`\`\`
+   ```
 
 2. Install the required libraries:
-   \`\`\`bash
+   ```bash
    pip install -r requirements.txt
-   \`\`\`
+   ```
 
 ## Usage
 
 1. Run the script:
 
-   \`\`\`bash
+   ```bash
    python main.py
-   \`\`\`
+   ```
 
 2. Follow the prompts:
 
@@ -68,17 +68,17 @@ This project simulates the future stock prices of a user-specified ticker using 
 
 Input:
 
-\`\`\`
+```
 Enter the stock ticker: AAPL
 Enter historical start date (YYYY-MM-DD) [default: 2023-01-01]:
 Enter historical end date (YYYY-MM-DD) [default: 2024-01-01]:
 Enter the prediction date (YYYY-MM-DD) [default: 2025-01-01]:
 Enter the number of simulations [default: 1000]:
-\`\`\`
+```
 
 Output:
 
-\`\`\`
+```
 Stock Ticker: AAPL
 Annualized Mean Return (µ): 0.5785
 Annualized Volatility (σ): 0.1984
@@ -90,7 +90,7 @@ Median Final Price: 339.59
 Standard Deviation of Final Prices: 70.44
 95% Confidence Interval: (207.26, 483.38)
 Percentiles: 10th 257.40, 25th 293.76, 75th 386.72, 90th 443.00
-\`\`\`
+```
 
 ![Simulated Stock Price Paths & Summary](example.png)
 
