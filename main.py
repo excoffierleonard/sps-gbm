@@ -72,14 +72,23 @@ def get_inputs():
             "Error: Invalid historical end date. Please use YYYY-MM-DD format, ensure it is not in the future, and not before the start date."
         )
 
+    historical_time_span = (
+        end_date_obj - datetime.strptime(start_date, "%Y-%m-%d").date()
+    )
+    default_prediction_date = today + historical_time_span
+
     while True:
-        prediction_days = input(
-            f"Enter the prediction period in days [default: {DAYS_IN_YEAR}]: "
-        ).strip() or str(DAYS_IN_YEAR)
-        if is_positive_integer(prediction_days):
-            prediction_days = int(prediction_days)
+        prediction_date = input(
+            f"Enter the prediction date (YYYY-MM-DD) [default: {default_prediction_date}]: "
+        ).strip() or str(default_prediction_date)
+        if (
+            is_valid_date(prediction_date)
+            and datetime.strptime(prediction_date, "%Y-%m-%d").date() > today
+        ):
+            prediction_date_obj = datetime.strptime(prediction_date, "%Y-%m-%d").date()
+            prediction_days = (prediction_date_obj - today).days
             break
-        print("Error: Prediction period must be a positive integer.")
+        print("Error: Prediction date must be in the future and use YYYY-MM-DD format.")
 
     while True:
         num_simulations = input(
@@ -90,7 +99,14 @@ def get_inputs():
             break
         print("Error: Number of simulations must be a positive integer.")
 
-    return ticker, start_date, end_date, prediction_days, num_simulations
+    return (
+        ticker,
+        start_date,
+        end_date,
+        prediction_days,
+        prediction_date,
+        num_simulations,
+    )
 
 
 def calculate_parameters_and_setup_simulation(
@@ -161,6 +177,7 @@ def calculate_summary_stats(
 def display_results(
     ticker,
     prediction_days,
+    prediction_date,
     mu,
     sigma,
     S0,
@@ -175,7 +192,9 @@ def display_results(
     print(f"Annualized Mean Return (µ): {mu:.4f}")
     print(f"Annualized Volatility (σ): {sigma:.4f}")
     print(f"Most Recent Closing Price: {S0:.2f}")
-    print(f"\nSummary of Predicted Stock Prices after {prediction_days} days:")
+    print(
+        f"\nSummary of Predicted Stock Prices after {prediction_days} days (on {prediction_date}):"
+    )
     print(f"Mean Final Price: {mean_final_price:.2f} ({percent_change:.2f}%)")
     print(f"Median Final Price: {median_final_price:.2f}")
     print(f"Standard Deviation of Final Prices: {std_final_price:.2f}")
@@ -273,7 +292,14 @@ def plot_results(
 
 def main():
     try:
-        ticker, start_date, end_date, prediction_days, num_simulations = get_inputs()
+        (
+            ticker,
+            start_date,
+            end_date,
+            prediction_days,
+            prediction_date,
+            num_simulations,
+        ) = get_inputs()
         mu, sigma, S0, T, N, trading_dates, historical_data = (
             calculate_parameters_and_setup_simulation(
                 ticker, start_date, end_date, prediction_days
@@ -293,6 +319,7 @@ def main():
         display_results(
             ticker,
             prediction_days,
+            prediction_date,
             mu,
             sigma,
             S0,
