@@ -1,4 +1,5 @@
 # FIXME: Stop rendering of non-trading days on the plot, the issue is likely on the proportional time delta rendering rather that equidistantly indexing the data points.
+# FIXME: Histogram and end of simulation no longer connects correctly.
 
 from datetime import datetime, timedelta
 
