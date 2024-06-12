@@ -1,4 +1,3 @@
-# FIXME: Fix plot function so that the simulation step 0 shows as the last historical closing price and displays correctly.
 # FIXME: Stop rendering of non-trading days on the plot.
 
 from datetime import datetime, timedelta
@@ -219,7 +218,12 @@ def plot_results(
     # Extract historical dates and prices from data
     initial_dates = historical_data.index
     historical_prices = historical_data["Adj Close"].values
-    whole_dates = initial_dates.append(pd.to_datetime(trading_dates))
+
+    # Ensure trading_dates handle datetime conversion correctly
+    trading_dates = pd.to_datetime(trading_dates)
+
+    # Concatenate historical and predicted dates
+    whole_dates = initial_dates.append(trading_dates[1:])
 
     # Plot historical prices
     ax_sim.plot(
@@ -232,7 +236,7 @@ def plot_results(
 
     # Plot simulations
     for future_prices in simulations:
-        ax_sim.plot(trading_dates, future_prices, alpha=0.3)
+        ax_sim.plot(whole_dates[-len(future_prices) :], future_prices, alpha=0.3)
     ax_sim.set(
         title=f"Stock Price Simulations for {ticker}",
         xlabel="Date",
