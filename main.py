@@ -73,7 +73,7 @@ def get_inputs():
     historical_time_span = (
         end_date_obj - datetime.strptime(start_date, "%Y-%m-%d").date()
     )
-    default_prediction_date = today + historical_time_span
+    default_prediction_date = end_date_obj + historical_time_span
 
     while True:
         prediction_date = input(
@@ -81,12 +81,14 @@ def get_inputs():
         ).strip() or str(default_prediction_date)
         if (
             is_valid_date(prediction_date)
-            and datetime.strptime(prediction_date, "%Y-%m-%d").date() > today
+            and datetime.strptime(prediction_date, "%Y-%m-%d").date() > end_date_obj
         ):
             prediction_date_obj = datetime.strptime(prediction_date, "%Y-%m-%d").date()
-            prediction_days = (prediction_date_obj - today).days
+            prediction_days = (prediction_date_obj - end_date_obj).days
             break
-        print("Error: Prediction date must be in the future and use YYYY-MM-DD format.")
+        print(
+            "Error: Prediction date must be after the historical end date and use YYYY-MM-DD format."
+        )
 
     while True:
         num_simulations = input(
