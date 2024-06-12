@@ -46,7 +46,7 @@ def get_inputs():
 
     while True:
         start_date = input(
-            f"Enter start date (YYYY-MM-DD) [default: {default_start_date}]: "
+            f"Enter historical start date (YYYY-MM-DD) [default: {default_start_date}]: "
         ).strip() or str(default_start_date)
         if (
             is_valid_date(start_date)
@@ -54,12 +54,12 @@ def get_inputs():
         ):
             break
         print(
-            "Error: Invalid start date. Please use YYYY-MM-DD format and ensure it is not in the future."
+            "Error: Invalid historical start date. Please use YYYY-MM-DD format and ensure it is not in the future."
         )
 
     while True:
         end_date = input(
-            f"Enter end date (YYYY-MM-DD) [default: {today}]: "
+            f"Enter historical end date (YYYY-MM-DD) [default: {today}]: "
         ).strip() or str(today)
         end_date_obj = datetime.strptime(end_date, "%Y-%m-%d").date()
         if (
@@ -69,7 +69,7 @@ def get_inputs():
         ):
             break
         print(
-            "Error: Invalid end date. Please use YYYY-MM-DD format, ensure it is not in the future, and not before the start date."
+            "Error: Invalid historical end date. Please use YYYY-MM-DD format, ensure it is not in the future, and not before the start date."
         )
 
     while True:
