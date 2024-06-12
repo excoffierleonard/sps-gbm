@@ -1,4 +1,4 @@
-# FIXME: Stop rendering of non-trading days on the plot.
+# FIXME: Stop rendering of non-trading days on the plot, the issue is likely on the proportional time delta rendering rather that equidistantly indexing the data points.
 
 from datetime import datetime, timedelta
 
@@ -8,22 +8,6 @@ import pandas as pd
 import pandas_market_calendars as mcal
 import yfinance as yf
 from scipy import stats
-
-
-def get_market_calendar(ticker):
-    stock = yf.Ticker(ticker)
-    exchange = stock.info.get("exchange", "NYSE")
-    exchange_calendar = {
-        "NMS": "NASDAQ",
-        "NASDAQ": "NASDAQ",
-        "NYQ": "NYSE",
-        "NYSE": "NYSE",
-        "AMS": "Euronext",
-        "AEX": "Euronext",
-        "LSE": "LSE",
-        "LON": "LSE",
-    }
-    return mcal.get_calendar(exchange_calendar.get(exchange, "NYSE"))
 
 
 def get_inputs():
@@ -44,55 +28,47 @@ def get_inputs():
         try:
             stock = yf.Ticker(ticker)
             return not stock.history(period="1d").empty
-        except Exception as e:
+        except Exception:
             return False
 
     days_in_year = 365
-    default_simulations_count = 1000
     today = datetime.today().date()
     default_start_date = today - timedelta(days=5 * days_in_year)
+    default_simulations_count = 1000
 
     while True:
         ticker = input("Enter the stock ticker: ").strip()
-        if ticker:
-            if is_existing_ticker(ticker):
-                break
-            else:
-                print(
-                    "Error: The stock ticker does not exist. Please enter a valid ticker."
-                )
-        else:
-            print("Error: Stock ticker cannot be empty.")
+        if ticker and is_existing_ticker(ticker):
+            break
+        print("Error: The stock ticker does not exist. Please enter a valid ticker.")
 
     while True:
         start_date = input(
             f"Enter start date (YYYY-MM-DD) [default: {default_start_date}]: "
         ).strip() or str(default_start_date)
-        if is_valid_date(start_date):
-            if datetime.strptime(start_date, "%Y-%m-%d").date() <= today:
-                break
-            else:
-                print("Error: Start date cannot be in the future.")
-        else:
-            print("Error: Invalid start date format. Please use YYYY-MM-DD.")
+        if (
+            is_valid_date(start_date)
+            and datetime.strptime(start_date, "%Y-%m-%d").date() <= today
+        ):
+            break
+        print(
+            "Error: Invalid start date. Please use YYYY-MM-DD format and ensure it is not in the future."
+        )
 
     while True:
         end_date = input(
             f"Enter end date (YYYY-MM-DD) [default: {today}]: "
         ).strip() or str(today)
-        if is_valid_date(end_date):
-            if datetime.strptime(end_date, "%Y-%m-%d").date() <= today:
-                if (
-                    datetime.strptime(end_date, "%Y-%m-%d").date()
-                    >= datetime.strptime(start_date, "%Y-%m-%d").date()
-                ):
-                    break
-                else:
-                    print("Error: End date cannot be before start date.")
-            else:
-                print("Error: End date cannot be in the future.")
-        else:
-            print("Error: Invalid end date format. Please use YYYY-MM-DD.")
+        if (
+            is_valid_date(end_date)
+            and datetime.strptime(end_date, "%Y-%m-%d").date() <= today
+            and datetime.strptime(end_date, "%Y-%m-%d").date()
+            >= datetime.strptime(start_date, "%Y-%m-%d").date()
+        ):
+            break
+        print(
+            "Error: Invalid end date. Please use YYYY-MM-DD format, ensure it is not in the future, and not before the start date."
+        )
 
     while True:
         prediction_days = input(
@@ -112,18 +88,27 @@ def get_inputs():
             break
         print("Error: Number of simulations must be a positive integer.")
 
-    return (
-        ticker,
-        start_date,
-        end_date,
-        prediction_days,
-        num_simulations,
-    )
+    return ticker, start_date, end_date, prediction_days, num_simulations
 
 
 def calculate_parameters_and_setup_simulation(
     ticker, start_date, end_date, prediction_days
 ):
+    def get_market_calendar(ticker):
+        stock = yf.Ticker(ticker)
+        exchange = stock.info.get("exchange", "NYSE")
+        exchange_calendar = {
+            "NMS": "NASDAQ",
+            "NASDAQ": "NASDAQ",
+            "NYQ": "NYSE",
+            "NYSE": "NYSE",
+            "AMS": "Euronext",
+            "AEX": "Euronext",
+            "LSE": "LSE",
+            "LON": "LSE",
+        }
+        return mcal.get_calendar(exchange_calendar.get(exchange, "NYSE"))
+
     data = yf.download(ticker, start=start_date, end=end_date)
     returns = data["Adj Close"].pct_change().dropna()
     mu_daily, sigma_daily = returns.mean(), returns.std()
@@ -142,7 +127,6 @@ def calculate_parameters_and_setup_simulation(
     trading_dates = [market_schedule.index[0].date()] + market_schedule.index.tolist()
     T, N = trading_days_count / trading_days_per_year, trading_days_count
 
-    # Return historical data along with other parameters
     return mu_annual, sigma_annual, S0, T, N, trading_dates, data
 
 
@@ -215,17 +199,11 @@ def plot_results(
         1, 2, figsize=(16, 6), gridspec_kw={"width_ratios": [3, 1]}
     )
 
-    # Extract historical dates and prices from data
     initial_dates = historical_data.index
     historical_prices = historical_data["Adj Close"].values
-
-    # Ensure trading_dates handle datetime conversion correctly
     trading_dates = pd.to_datetime(trading_dates)
-
-    # Concatenate historical and predicted dates
     whole_dates = initial_dates.append(trading_dates[1:])
 
-    # Plot historical prices
     ax_sim.plot(
         initial_dates,
         historical_prices,
@@ -233,8 +211,6 @@ def plot_results(
         alpha=0.5,
         label="Historical Prices",
     )
-
-    # Plot simulations
     for future_prices in simulations:
         ax_sim.plot(whole_dates[-len(future_prices) :], future_prices, alpha=0.3)
     ax_sim.set(
@@ -247,7 +223,6 @@ def plot_results(
             np.max(simulations),
         ],
     )
-
     ax_sim.legend(loc="upper left")
     ax_sim.grid(True)
     plt.setp(ax_sim.xaxis.get_majorticklabels(), rotation=45)
@@ -288,6 +263,7 @@ def plot_results(
         fontsize=10,
         bbox=dict(facecolor="white", edgecolor=color_mean, boxstyle="round,pad=0.3"),
     )
+
     plt.setp(ax_hist.get_yticklabels(), visible=False)
     plt.subplots_adjust(left=0.05, right=0.95, top=0.85, bottom=0.15, wspace=0)
     fig.suptitle(f"Stock Price Simulation and Prediction for {ticker}", fontsize=16)
@@ -297,13 +273,11 @@ def plot_results(
 def main():
     try:
         ticker, start_date, end_date, prediction_days, num_simulations = get_inputs()
-
         mu, sigma, S0, T, N, trading_dates, historical_data = (
             calculate_parameters_and_setup_simulation(
                 ticker, start_date, end_date, prediction_days
             )
         )
-
         (
             simulations,
             final_prices,
@@ -311,7 +285,6 @@ def main():
             median_final_price,
             std_final_price,
         ) = simulate_and_perform(S0, mu, sigma, T, N, num_simulations)
-
         confidence_interval, percentiles, percent_change = calculate_summary_stats(
             S0, final_prices, mean_final_price, std_final_price
         )
@@ -329,7 +302,6 @@ def main():
             percentiles,
             percent_change,
         )
-
         plot_results(
             ticker,
             S0,
