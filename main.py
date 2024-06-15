@@ -173,7 +173,7 @@ def calculate_summary_stats(
     percent_change = (mean_final_price - S0) / S0 * 100
     return confidence_interval, percentiles, percent_change
 
-
+# TODO: Add Training Data date and days used at the top of summary.
 def display_results(
     ticker,
     prediction_days,
