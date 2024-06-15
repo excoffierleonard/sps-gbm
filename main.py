@@ -1,3 +1,5 @@
+# TODO: Implement Backtesting per Stock, meaning the backtesting program test historical period lenght and prediciton length matrix sensitivity analysis to match the best date range for a specific stock, etc..
+
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
