@@ -3,3 +3,6 @@
 
 # Python virtual environment
 .venv/
+
+# Cache directory for previoulsy downloaded dataset
+cache/

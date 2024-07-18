@@ -1,5 +1,7 @@
 # TODO: Implement Backtesting per Stock, meaning the backtesting program test historical period lenght and prediciton length matrix sensitivity analysis to match the best date range for a specific stock, etc..
 
+import os
+import pickle
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
@@ -111,6 +113,40 @@ def get_inputs():
     )
 
 
+def extend_and_cache_data(ticker, start_date, end_date):
+    cache_dir = "cache"
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+
+    cache_file_prefix = f"{ticker}.csv"
+    full_cache_path = os.path.join(cache_dir, cache_file_prefix)
+
+    if os.path.exists(full_cache_path):
+        data = pd.read_csv(full_cache_path, index_col=0, parse_dates=True)
+        data_start = data.index.min().date()
+        data_end = data.index.max().date()
+
+        if start_date >= data_start and end_date <= data_end:
+            print(f"Using cached data in {full_cache_path}")
+            return data
+
+        if start_date < data_start or end_date > data_end:
+            print(f"Updating cached data in {full_cache_path}")
+            if start_date < data_start:
+                new_data_pre = yf.download(ticker, start=start_date, end=data_start)
+                data = pd.concat([new_data_pre, data])
+            if end_date > data_end:
+                new_data_post = yf.download(ticker, start=data_end, end=end_date)
+                data = pd.concat([data, new_data_post])
+            data.to_csv(full_cache_path)
+            return data
+
+    # Download data if not available in cache
+    data = yf.download(ticker, start=start_date, end=end_date)
+    data.to_csv(full_cache_path)
+    return data
+
+
 def calculate_parameters_and_setup_simulation(
     ticker, start_date, end_date, prediction_days
 ):
@@ -129,7 +165,11 @@ def calculate_parameters_and_setup_simulation(
         }
         return mcal.get_calendar(exchange_calendar.get(exchange, "NYSE"))
 
-    data = yf.download(ticker, start=start_date, end=end_date)
+    # Extend and cache data
+    data = extend_and_cache_data(
+        ticker, pd.to_datetime(start_date).date(), pd.to_datetime(end_date).date()
+    )
+
     returns = data["Adj Close"].pct_change().dropna()
     mu_daily, sigma_daily = returns.mean(), returns.std()
     actual_days = (pd.to_datetime(end_date) - pd.to_datetime(start_date)).days
@@ -174,6 +214,7 @@ def calculate_summary_stats(
     percentiles = np.percentile(final_prices, [10, 25, 75, 90])
     percent_change = (mean_final_price - S0) / S0 * 100
     return confidence_interval, percentiles, percent_change
+
 
 # TODO: Add Training Data date and days used at the top of summary.
 def display_results(
