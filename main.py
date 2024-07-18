@@ -1,7 +1,7 @@
 # TODO: Implement Backtesting per Stock, meaning the backtesting program test historical period lenght and prediciton length matrix sensitivity analysis to match the best date range for a specific stock, etc..
+# TODO: Clean the code imlemented in plane.
 
 import os
-import pickle
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
@@ -16,6 +16,22 @@ HISTORICAL_DATA_PERIOD = 1 * DAYS_IN_YEAR
 DEFAULT_SIMULATIONS_COUNT = 1000
 
 
+def is_existing_ticker(ticker):
+    cache_dir = "cache"
+    cache_file_prefix = f"{ticker}.csv"
+    full_cache_path = os.path.join(cache_dir, cache_file_prefix)
+
+    # Check if the cache file exists first
+    if os.path.exists(full_cache_path):
+        return True
+
+    try:
+        stock = yf.Ticker(ticker)
+        return not stock.history(period="1d").empty
+    except Exception:
+        return False
+
+
 def get_inputs():
     def is_valid_date(date_str):
         try:
@@ -28,13 +44,6 @@ def get_inputs():
         try:
             return int(value) > 0
         except ValueError:
-            return False
-
-    def is_existing_ticker(ticker):
-        try:
-            stock = yf.Ticker(ticker)
-            return not stock.history(period="1d").empty
-        except Exception:
             return False
 
     today = datetime.today().date()
