@@ -30,17 +30,15 @@ This project simulates the future stock prices of a user-specified ticker using 
 
 ## Installation
 
-1. Clone the repository:
+Clone the repository, create a virtual environement, install the required packages:
 
-   ```bash
-   git clone https://github.com/excoffierleonard/sps-gbm.git
-   cd sps-gbm
-   ```
-
-2. Install the required libraries:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+git clone https://github.com/excoffierleonard/sps-gbm.git && \
+cd sps-gbm && \
+python3 -m venv .venv && \
+source .venv/bin/activate && \
+pip install -r requirements.txt
+```
 
 ## Usage
 
