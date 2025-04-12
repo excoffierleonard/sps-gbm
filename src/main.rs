@@ -1,13 +1,16 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use chrono::{Duration, Local};
 use clap::Parser;
 use plotters::prelude::*;
 use rand::thread_rng;
 use rand_distr::{Distribution, Normal};
+use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use statrs::distribution::ContinuousCDF;
 use statrs::distribution::Normal as StatNormal;
 use std::fs;
+use std::path::Path;
 use std::process;
 
 const DAYS_IN_YEAR: f64 = 252.0; // Trading days in a year
@@ -44,7 +47,7 @@ struct SimulationResults {
     std_final_price: f64,
 }
 
-/// Fetch historical stock data from an external financial API
+/// Fetch historical stock data from Alpha Vantage API
 ///
 /// # Parameters
 /// - `ticker`: The stock symbol (e.g., "AAPL", "MSFT")
@@ -53,13 +56,113 @@ struct SimulationResults {
 /// # Returns
 /// A vector of StockData structs containing historical price data in chronological order
 /// (oldest first, most recent last)
-fn fetch_stock_data(_ticker: &str, _days: i64) -> Result<Vec<StockData>> {
-    // This is a placeholder implementation
-    // Replace this with your own implementation that fetches data from your preferred source
+fn fetch_stock_data(ticker: &str, days: i64) -> Result<Vec<StockData>> {
+    dotenvy::dotenv().ok();
 
-    Err(anyhow!(
-        "You need to implement fetch_stock_data with your preferred stock data source"
-    ))
+    // Create cache directory if it doesn't exist
+    let cache_dir = Path::new("cache");
+    if !cache_dir.exists() {
+        fs::create_dir_all(cache_dir)?;
+    }
+
+    // Check if we have cached data for this ticker
+    let cache_file = cache_dir.join(format!("{}.json", ticker));
+
+    if cache_file.exists() {
+        println!("Using cached data for {}", ticker);
+        let cached_data = fs::read_to_string(&cache_file)
+            .with_context(|| format!("Failed to read cache file for {}", ticker))?;
+
+        let stock_data: Vec<StockData> = serde_json::from_str(&cached_data)
+            .with_context(|| format!("Failed to parse cached data for {}", ticker))?;
+
+        // Return the most recent 'days' of stock data
+        return Ok(stock_data
+            .into_iter()
+            .rev()
+            .take(days as usize)
+            .rev()
+            .collect());
+    }
+
+    // If no cached data, fetch from API
+    println!("Fetching data for {} from Alpha Vantage...", ticker);
+
+    // Get API key from environment variable (set via .env file)
+    let api_key = std::env::var("ALPHAVANTAGE_API_KEY").unwrap();
+
+    let url = format!(
+        "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={}&outputsize=full&apikey={}",
+        ticker, api_key
+    );
+
+    // Make the API request
+    let client = Client::new();
+    let response = client
+        .get(&url)
+        .send()
+        .with_context(|| format!("Failed to fetch data for {}", ticker))?;
+
+    if !response.status().is_success() {
+        return Err(anyhow!(
+            "API request failed with status: {}",
+            response.status()
+        ));
+    }
+
+    let json: Value = response
+        .json()
+        .with_context(|| "Failed to parse API response as JSON")?;
+
+    // Check for error response
+    if json.get("Error Message").is_some() {
+        let error_msg = json["Error Message"].as_str().unwrap_or("Unknown error");
+        return Err(anyhow!("API error: {}", error_msg));
+    }
+
+    if json.get("Information").is_some() && json.get("Time Series (Daily)").is_none() {
+        let info = json["Information"].as_str().unwrap_or("API limit reached");
+        return Err(anyhow!("API limit issue: {}", info));
+    }
+
+    // Extract time series data
+    let time_series = json["Time Series (Daily)"]
+        .as_object()
+        .ok_or_else(|| anyhow!("Failed to extract time series data"))?;
+
+    // Convert to vector of StockData
+    let mut stock_data: Vec<StockData> = Vec::new();
+
+    for (date, data) in time_series {
+        let close_price = data["4. close"]
+            .as_str()
+            .ok_or_else(|| anyhow!("Missing close price data"))?
+            .parse::<f64>()
+            .with_context(|| "Failed to parse close price as float")?;
+
+        stock_data.push(StockData {
+            date: date.to_string(),
+            close: close_price,
+        });
+    }
+
+    // Sort by date (oldest first)
+    stock_data.sort_by(|a, b| a.date.cmp(&b.date));
+
+    // Cache the data for future use
+    let cached_json = serde_json::to_string(&stock_data)
+        .with_context(|| "Failed to serialize stock data for caching")?;
+
+    fs::write(&cache_file, cached_json)
+        .with_context(|| format!("Failed to write cache file for {}", ticker))?;
+
+    // Return the most recent 'days' of data
+    Ok(stock_data
+        .into_iter()
+        .rev()
+        .take(days as usize)
+        .rev()
+        .collect())
 }
 
 fn simulate_gbm(
