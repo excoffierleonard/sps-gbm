@@ -93,6 +93,40 @@ pub fn estimate_gbm_parameters(prices: &[f64], dt: f64) -> GBMParameters {
     GBMParameters { drift, volatility }
 }
 
+/// Generate GBM paths from historical prices
+///
+/// # Arguments
+///
+/// * `prices` - Vector of historical prices
+/// * `dt` - The time step (fraction of a year) between each price observation
+/// * `num_steps` - The number of steps to simulate
+/// * `num_paths` - The number of paths to simulate
+///
+/// # Returns
+///
+/// A vector of vectors, where each inner vector represents a simulated path
+pub fn generate_gbm_paths_from_prices(
+    prices: &[f64],
+    dt: f64,
+    num_steps: usize,
+    num_paths: usize,
+) -> Vec<Vec<f64>> {
+    let gbm_parameters = estimate_gbm_parameters(prices, dt);
+    let initial_value = prices[0];
+
+    (0..num_paths)
+        .map(|_| {
+            simulate_gbm_path(
+                initial_value,
+                gbm_parameters.drift,
+                gbm_parameters.volatility,
+                dt,
+                num_steps,
+            )
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -187,6 +221,25 @@ mod tests {
             let gbm_parameters = estimate_gbm_parameters(&tc.prices, tc.dt);
             assert_eq!(gbm_parameters.drift, tc.expected_drift);
             assert_eq!(gbm_parameters.volatility, tc.expected_volatility);
+        }
+    }
+
+    #[test]
+    fn generate_gbm_paths_from_prices_correct() {
+        let prices = vec![100.0, 105.0, 110.0];
+        let dt = 1.0;
+        let num_steps = 10;
+        let num_paths = 5;
+
+        let paths = generate_gbm_paths_from_prices(&prices, dt, num_steps, num_paths);
+
+        assert_eq!(paths.len(), num_paths);
+        for path in paths.iter() {
+            assert_eq!(path.len(), num_steps + 1);
+            assert_eq!(path[0], prices[0]);
+            for i in 1..path.len() {
+                assert!(path[i] > 0.0);
+            }
         }
     }
 }
