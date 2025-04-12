@@ -32,13 +32,13 @@ fn criterion_benchmark(c: &mut Criterion) {
     g.bench_function("Calculate Parameters", |b| {
         b.iter(|| estimate_gbm_parameters(black_box(&[100.0, 105.0, 110.0, 115.0]), black_box(1.0)))
     });
-    g.bench_function("Generate Paths from Prices", |b| {
+    g.bench_function("Generate 10,000 Paths from Prices", |b| {
         b.iter(|| {
             generate_gbm_paths_from_prices(
                 black_box(&[100.0, 105.0, 110.0, 115.0]),
                 black_box(1.0),
-                black_box(1000),
-                black_box(10000),
+                black_box(1_000),
+                black_box(10_000),
             )
         })
     });

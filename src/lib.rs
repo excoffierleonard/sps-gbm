@@ -129,6 +129,25 @@ pub fn generate_gbm_paths_from_prices(
         .collect()
 }
 
+/// Fetches historical prices from the Alpha Vantage API
+///
+/// # Arguments
+/// * `symbol` - The stock symbol to fetch prices for
+/// * `api_key` - Your Alpha Vantage API key
+/// * `start_date` - The start date for fetching prices
+/// * `end_date` - The end date for fetching prices
+///
+/// # Returns
+/// A vector of historical prices
+pub fn fetch_historical_prices(
+    symbol: &str,
+    api_key: &str,
+    start_date: &str,
+    end_date: &str,
+) -> Vec<f64> {
+    vec![]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
