@@ -2,11 +2,11 @@ use anyhow::{anyhow, Context, Result};
 use chrono::{Duration, Local};
 use clap::Parser;
 use plotters::prelude::*;
-use rand::thread_rng;
-use rand_distr::{Distribution, Normal};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sps_gbm::SimulationResults;
+use sps_gbm::simulate_gbm;
 use statrs::distribution::ContinuousCDF;
 use statrs::distribution::Normal as StatNormal;
 use std::fs;
@@ -38,13 +38,6 @@ struct Args {
 struct StockData {
     date: String,
     close: f64,
-}
-
-struct SimulationResults {
-    simulations: Vec<Vec<f64>>,
-    mean_final_price: f64,
-    median_final_price: f64,
-    std_final_price: f64,
 }
 
 /// Fetch historical stock data from Alpha Vantage API
@@ -165,55 +158,6 @@ fn fetch_stock_data(ticker: &str, days: i64) -> Result<Vec<StockData>> {
         .collect())
 }
 
-fn simulate_gbm(
-    s0: f64,
-    mu: f64,
-    sigma: f64,
-    days: usize,
-    num_simulations: usize,
-) -> SimulationResults {
-    let dt = 1.0 / DAYS_IN_YEAR;
-    let drift = (mu - 0.5 * sigma * sigma) * dt;
-    let vol = sigma * dt.sqrt();
-
-    let normal = Normal::new(0.0, 1.0).unwrap();
-    let mut rng = thread_rng();
-
-    let mut simulations = vec![vec![s0; days + 1]; num_simulations];
-    let mut final_prices = Vec::with_capacity(num_simulations);
-
-    for simulation in simulations.iter_mut().take(num_simulations) {
-        for j in 1..=days {
-            let z = normal.sample(&mut rng);
-            let return_val = (drift + vol * z).exp();
-            simulation[j] = simulation[j - 1] * return_val;
-        }
-        final_prices.push(simulation[days]);
-    }
-
-    // Calculate statistics
-    final_prices.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    let mean_final_price = final_prices.iter().sum::<f64>() / final_prices.len() as f64;
-    let median_final_price = if final_prices.len() % 2 == 0 {
-        (final_prices[final_prices.len() / 2 - 1] + final_prices[final_prices.len() / 2]) / 2.0
-    } else {
-        final_prices[final_prices.len() / 2]
-    };
-
-    let variance = final_prices
-        .iter()
-        .map(|&price| (price - mean_final_price).powi(2))
-        .sum::<f64>()
-        / final_prices.len() as f64;
-    let std_final_price = variance.sqrt();
-
-    SimulationResults {
-        simulations,
-        mean_final_price,
-        median_final_price,
-        std_final_price,
-    }
-}
 
 fn calculate_confidence_interval(mean: f64, std_dev: f64) -> (f64, f64) {
     let normal = StatNormal::new(mean, std_dev).unwrap();
