@@ -51,13 +51,7 @@ pub fn simulate_gbm_path(
     path.push(initial_value);
 
     for &z in z_values.iter().take(num_steps) {
-        let next_value = gbm_step(
-            path.last().copied().unwrap(),
-            drift,
-            volatility,
-            dt,
-            z,
-        );
+        let next_value = gbm_step(path.last().copied().unwrap(), drift, volatility, dt, z);
         path.push(next_value);
     }
 
