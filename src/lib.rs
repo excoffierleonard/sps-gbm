@@ -21,6 +21,19 @@ pub fn gbm_step(current_value: f64, drift: f64, volatility: f64, dt: f64, z: f64
     current_value * (drift_term + diffusion_term).exp()
 }
 
+/// Simulates a path of geometric Brownian motion
+///
+/// # Arguments
+///
+/// * `initial_value` - The initial value S(0)
+/// * `drift` - The drift parameter μ
+/// * `volatility` - The volatility parameter σ
+/// * `dt` - The time step Δt
+/// * `num_steps` - The number of steps to simulate
+///
+/// # Returns
+///
+/// A vector containing the simulated path of values
 pub fn simulate_gbm_path(
     initial_value: f64,
     drift: f64,
@@ -30,17 +43,21 @@ pub fn simulate_gbm_path(
 ) -> Vec<f64> {
     let mut rng = thread_rng();
     let normal = Normal::new(0.0, 1.0).unwrap();
-    
+
     // Pregenerate all random z values
-    let z_values: Vec<f64> = (0..num_steps)
-        .map(|_| normal.sample(&mut rng))
-        .collect();
+    let z_values: Vec<f64> = (0..num_steps).map(|_| normal.sample(&mut rng)).collect();
 
     let mut path = Vec::with_capacity(num_steps + 1);
     path.push(initial_value);
 
     for i in 0..num_steps {
-        let next_value = gbm_step(path.last().copied().unwrap(), drift, volatility, dt, z_values[i]);
+        let next_value = gbm_step(
+            path.last().copied().unwrap(),
+            drift,
+            volatility,
+            dt,
+            z_values[i],
+        );
         path.push(next_value);
     }
 
