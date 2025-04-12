@@ -32,7 +32,7 @@ pub fn simulate_gbm_path(
     let mut rng = thread_rng();
 
     for _ in 0..num_steps {
-        let z: f64 = Normal::new(0.0, 1.0).unwrap().sample(&mut rng);
+        let z = Normal::new(0.0, 1.0).unwrap().sample(&mut rng);
         let next_value = gbm_step(path.last().copied().unwrap(), drift, volatility, dt, z);
         path.push(next_value);
     }
