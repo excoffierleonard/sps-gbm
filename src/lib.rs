@@ -23,7 +23,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_gbm_step_matrix() {
+    fn test_gbm_step_formula() {
         struct TestCase {
             current_value: f64,
             drift: f64,

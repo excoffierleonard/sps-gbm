@@ -1,8 +1,11 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use sps_gbm::gbm_step;
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("GBM Function", |b| {
+    let mut group = c.benchmark_group("GBM Step");
+    group.throughput(Throughput::Elements(1));
+
+    group.bench_function("GBM Function", |b| {
         b.iter(|| {
             gbm_step(
                 black_box(100.0),
