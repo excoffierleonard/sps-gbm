@@ -1,5 +1,6 @@
 use rand::thread_rng;
 use rand_distr::{Distribution, Normal};
+use rayon::prelude::*;
 
 /// Calculates a single step of geometric Brownian motion
 ///
@@ -115,6 +116,7 @@ pub fn generate_gbm_paths_from_prices(
     let initial_value = prices[0];
 
     (0..num_paths)
+        .into_par_iter()
         .map(|_| {
             simulate_gbm_path(
                 initial_value,
