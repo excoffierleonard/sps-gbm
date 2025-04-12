@@ -58,12 +58,49 @@ pub fn simulate_gbm_path(
     path
 }
 
+pub struct GBMParameters {
+    pub drift: f64,
+    pub volatility: f64,
+}
+
+/// Estimates GBM parameters (drift and volatility) from historical prices
+///
+/// # Arguments
+///
+/// * `prices` - Vector of historical prices
+/// * `dt` - The time step (fraction of a year) between each price observation
+///
+/// # Returns
+///
+/// A tuple (drift, volatility) with annualized parameters for GBM
+pub fn estimate_gbm_parameters(prices: &[f64], dt: f64) -> GBMParameters {
+    let log_returns: Vec<f64> = prices
+        .windows(2)
+        .map(|window| (window[1] / window[0]).ln())
+        .collect();
+
+    let mean_log_return = log_returns.iter().copied().sum::<f64>() / log_returns.len() as f64;
+    let variance_log_return = log_returns
+        .iter()
+        .map(|&x| (x - mean_log_return).powi(2))
+        .sum::<f64>()
+        / (log_returns.len() - 1) as f64;
+
+    let volatility = variance_log_return.sqrt() / dt.sqrt();
+    // Add the volatility adjustment to get the correct drift
+    let drift = mean_log_return / dt + 0.5 * volatility.powi(2);
+
+    GBMParameters { drift, volatility }
+}
+
 #[cfg(test)]
 mod tests {
+    use serde::de;
+
     use super::*;
 
     #[test]
-    fn test_gbm_step_formula() {
+    fn gbm_step_formula() {
         struct TestCase {
             current_value: f64,
             drift: f64,
@@ -102,12 +139,12 @@ mod tests {
 
         for tc in test_cases.iter() {
             let next_value = gbm_step(tc.current_value, tc.drift, tc.volatility, tc.dt, tc.z);
-            assert!((next_value - tc.expected).abs() < 1e-2);
+            assert_eq!(next_value, tc.expected);
         }
     }
 
     #[test]
-    fn test_simulate_gbm_path() {
+    fn simulate_gbm_path_correct() {
         let initial_value = 100.0;
         let drift = 0.05;
         let volatility = 0.2;
@@ -121,6 +158,37 @@ mod tests {
 
         for i in 1..path.len() {
             assert!(path[i] > 0.0);
+        }
+    }
+
+    #[test]
+    fn estimate_gbm_parameters_formulas() {
+        struct TestCase {
+            prices: Vec<f64>,
+            dt: f64,
+            expected_drift: f64,
+            expected_volatility: f64,
+        }
+
+        let test_cases = [
+            TestCase {
+                prices: vec![100.0, 105.0, 110.0],
+                dt: 1.0,
+                expected_drift: 0.0476563782957547,
+                expected_volatility: 0.0016052374230733303,
+            },
+            TestCase {
+                prices: vec![200.0, 210.0, 220.0],
+                dt: 1.0,
+                expected_drift: 0.0476563782957547,
+                expected_volatility: 0.0016052374230733303,
+            },
+        ];
+
+        for tc in test_cases.iter() {
+            let gbm_parameters = estimate_gbm_parameters(&tc.prices, tc.dt);
+            assert_eq!(gbm_parameters.drift, tc.expected_drift);
+            assert_eq!(gbm_parameters.volatility, tc.expected_volatility);
         }
     }
 }

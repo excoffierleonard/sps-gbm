@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
-use sps_gbm::{gbm_step, simulate_gbm_path};
+use sps_gbm::{estimate_gbm_parameters, gbm_step, simulate_gbm_path};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("GBM");
@@ -26,6 +26,9 @@ fn criterion_benchmark(c: &mut Criterion) {
                 black_box(1_000),
             )
         })
+    });
+    g.bench_function("Calculate Parameters", |b| {
+        b.iter(|| estimate_gbm_parameters(black_box(&[100.0, 105.0, 110.0, 115.0]), black_box(1.0)))
     });
 }
 
