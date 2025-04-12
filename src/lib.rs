@@ -1,3 +1,6 @@
+use rand::thread_rng;
+use rand_distr::{Distribution, Normal};
+
 /// Calculates a single step of geometric Brownian motion
 ///
 /// # Arguments
@@ -16,6 +19,25 @@ pub fn gbm_step(current_value: f64, drift: f64, volatility: f64, dt: f64, z: f64
     let diffusion_term = volatility * dt.sqrt() * z;
 
     current_value * (drift_term + diffusion_term).exp()
+}
+
+pub fn simulate_gbm_path(
+    initial_value: f64,
+    drift: f64,
+    volatility: f64,
+    dt: f64,
+    num_steps: usize,
+) -> Vec<f64> {
+    let mut path = vec![initial_value];
+    let mut rng = thread_rng();
+
+    for _ in 0..num_steps {
+        let z: f64 = Normal::new(0.0, 1.0).unwrap().sample(&mut rng);
+        let next_value = gbm_step(path.last().copied().unwrap(), drift, volatility, dt, z);
+        path.push(next_value);
+    }
+
+    path
 }
 
 #[cfg(test)]
@@ -63,6 +85,24 @@ mod tests {
         for tc in test_cases.iter() {
             let next_value = gbm_step(tc.current_value, tc.drift, tc.volatility, tc.dt, tc.z);
             assert!((next_value - tc.expected).abs() < 1e-2);
+        }
+    }
+
+    #[test]
+    fn test_simulate_gbm_path() {
+        let initial_value = 100.0;
+        let drift = 0.05;
+        let volatility = 0.2;
+        let dt = 1.0;
+        let num_steps = 10;
+
+        let path = simulate_gbm_path(initial_value, drift, volatility, dt, num_steps);
+
+        assert_eq!(path.len(), num_steps + 1);
+        assert_eq!(path[0], initial_value);
+
+        for i in 1..path.len() {
+            assert!(path[i] > 0.0);
         }
     }
 }

@@ -2,11 +2,11 @@ use anyhow::{anyhow, Context, Result};
 use chrono::{Duration, Local};
 use clap::Parser;
 use plotters::prelude::*;
+use rand::thread_rng;
+use rand_distr::{Distribution, Normal};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use rand::thread_rng;
-use rand_distr::{Distribution, Normal};
 use statrs::distribution::ContinuousCDF;
 use statrs::distribution::Normal as StatNormal;
 use std::fs;
@@ -165,7 +165,6 @@ fn fetch_stock_data(ticker: &str, days: i64) -> Result<Vec<StockData>> {
         .rev()
         .collect())
 }
-
 
 fn calculate_confidence_interval(mean: f64, std_dev: f64) -> (f64, f64) {
     let normal = StatNormal::new(mean, std_dev).unwrap();
