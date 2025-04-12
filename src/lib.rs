@@ -28,12 +28,19 @@ pub fn simulate_gbm_path(
     dt: f64,
     num_steps: usize,
 ) -> Vec<f64> {
-    let mut path = vec![initial_value];
     let mut rng = thread_rng();
+    let normal = Normal::new(0.0, 1.0).unwrap();
+    
+    // Pregenerate all random z values
+    let z_values: Vec<f64> = (0..num_steps)
+        .map(|_| normal.sample(&mut rng))
+        .collect();
 
-    for _ in 0..num_steps {
-        let z = Normal::new(0.0, 1.0).unwrap().sample(&mut rng);
-        let next_value = gbm_step(path.last().copied().unwrap(), drift, volatility, dt, z);
+    let mut path = Vec::with_capacity(num_steps + 1);
+    path.push(initial_value);
+
+    for i in 0..num_steps {
+        let next_value = gbm_step(path.last().copied().unwrap(), drift, volatility, dt, z_values[i]);
         path.push(next_value);
     }
 
