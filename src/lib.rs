@@ -95,8 +95,6 @@ pub fn estimate_gbm_parameters(prices: &[f64], dt: f64) -> GBMParameters {
 
 #[cfg(test)]
 mod tests {
-    use serde::de;
-
     use super::*;
 
     #[test]
