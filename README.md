@@ -6,13 +6,13 @@ This project simulates the future stock prices of a user-specified ticker using 
 
 ## Features
 
-- **Fetch Historical Data**: Retrieve historical stock data from Yahoo Finance using the `yfinance` library.
+- **Fetch Historical Data**: Retrieve historical stock data from Yahoo Finance API.
 - **Validations**: Comprehensive input validation for date formats, positive integers, and existing stock tickers.
 - **Calculate Key Metrics**: Compute annualized mean return (µ) and volatility (σ) from historical data.
 - **Simulate Future Stock Prices**: Use the Geometric Brownian Motion (GBM) model to simulate future stock price trajectories.
 - **Multiple Simulations**: Perform multiple simulations to generate a distribution of future stock prices.
 - **Summary Statistics**: Compute and display summary statistics including mean, median, standard deviation, confidence intervals, and percentiles of the predicted prices.
-- **Visualizations**: Generate detailed visualizations:
+- **Visualizations**: Generate detailed visualizations using Plotters:
   - Plot multiple simulated future stock price paths.
   - Display a histogram of the final predicted stock prices.
   - Annotate plots with statistics like mean and median prices.
@@ -21,32 +21,31 @@ This project simulates the future stock prices of a user-specified ticker using 
 
 ## Requirements
 
-- Python 3
-- Matplotlib
-- Pandas
-- Pandas Market Calendars
-- Yfinance
-- SciPy
+- Rust (latest stable version)
+- Cargo (included with Rust)
 
 ## Installation
 
-Clone the repository, create a virtual environement, install the required packages:
+1. Clone the repository:
 
 ```bash
-git clone https://github.com/excoffierleonard/sps-gbm.git && \
-cd sps-gbm && \
-python3 -m venv .venv && \
-source .venv/bin/activate && \
-pip install -r requirements.txt
+git clone https://github.com/excoffierleonard/sps-gbm.git
+cd sps-gbm
+```
+
+2. Build the project:
+
+```bash
+cargo build --release
 ```
 
 ## Usage
 
-1. Run the script:
+1. Run the program:
 
-   ```bash
-   python main.py
-   ```
+```bash
+cargo run --release
+```
 
 2. Follow the prompts:
 
@@ -57,8 +56,8 @@ pip install -r requirements.txt
    - **Number of Simulations**: Enter the number of simulations to perform (default is 1000).
 
 3. View the results:
-   - The script will display the calculated annualized mean return (µ) and annualized volatility (σ).
-   - It will plot multiple simulated stock price trajectories over the prediction period.
+   - The program will display the calculated annualized mean return (µ) and annualized volatility (σ).
+   - It will generate a plot with multiple simulated stock price trajectories over the prediction period.
    - A histogram will visualize the distribution of the final predicted stock prices.
    - Summary statistics including mean, median, standard deviation, confidence intervals, and percentiles of the predicted prices will be displayed.
 
@@ -95,49 +94,42 @@ Percentiles: 10th 257.40, 25th 293.76, 75th 386.72, 90th 443.00
 ## How It Works
 
 1. **User Inputs**: The user provides a stock ticker, the date range for historical data, prediction date, and the number of simulations through interactive prompts.
-2. **Fetch Historical Data**: The script retrieves historical stock prices for the specified date range using the `yfinance` library.
+2. **Fetch Historical Data**: The program retrieves historical stock prices for the specified date range using the Yahoo Finance API.
 3. **Calculate Parameters**: Daily stock returns are computed to determine the annualized mean return (µ) and volatility (σ).
 4. **Set Simulation Parameters**: The time period in years (T) and the number of steps (N) are calculated based on the prediction period in days.
 5. **Run Simulations**: The Geometric Brownian Motion (GBM) model is used to simulate future stock prices over the prediction period. This involves generating multiple simulation paths.
 6. **Perform Multiple Simulations**: The specified number of simulations is run to obtain a distribution of final predicted stock prices.
 7. **Calculate Summary Statistics**: Key statistics are computed, including the mean, median, standard deviation, confidence intervals, and percentiles of the final predicted prices.
-8. **Display Results**: The script displays the calculated parameters and summary statistics.
-9. **Plot Results**: The script generates and displays plots:
+8. **Display Results**: The program displays the calculated parameters and summary statistics.
+9. **Plot Results**: The program generates plots:
    - **Simulation Paths**: Visualize multiple simulated stock price trajectories over the prediction period.
    - **Histogram of Final Prices**: Show the distribution of the final predicted stock prices.
 
 ## Possible Improvements
 
 1. **Parameter Estimation Methods**:
-
    - Improve the calculation of drift (µ) and volatility (σ) using more advanced statistical methods.
    - Consider using exponential moving averages or GARCH models to capture more dynamic aspects of financial time series.
 
 2. **User Interface**:
-
    - Create a graphical user interface (GUI) to make the application more user-friendly.
-   - Implement interactive plots where users can hover over points to see exact values.
+   - Implement interactive plots with web technology.
 
 3. **Complete Report Generation**:
-
    - Include risk metrics such as Value at Risk (VaR) and Expected Shortfall (ES) in generated reports.
-   - Create complete Stock analysis report and export it in a pretty pdf.
+   - Create complete stock analysis reports in PDF format.
 
 4. **Extend to Other Asset Classes**:
-
    - Adapt the model to simulate other types of financial assets like commodities, bonds, or cryptocurrencies.
 
 5. **Integration with Data Sources**:
-
    - Integrate with real-time data APIs to fetch the most recent stock prices and perform live simulations.
    - Use historical fundamental data to enhance the parameter estimation.
 
 6. **Sensitivity Analysis**:
-
    - Implement sensitivity analysis to understand how changes in input parameters (drift, volatility) affect the simulation outcomes.
 
 7. **Backtesting**:
-
    - Develop backtesting functionality to compare the simulation results with actual historical outcomes to validate the model.
    - Implement rollover of Monte Carlo over past steps to have a rolling prediction and improve the model.
 
@@ -151,5 +143,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Acknowledgments
 
-- This project utilizes the `yfinance` library to fetch historical stock data.
+- This project uses the Yahoo Finance API to fetch historical stock data.
+- Uses Plotters for visualization.
 - Inspiration from "Stochastic Calculus for Finance II" for the GBM model.
