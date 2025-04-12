@@ -1,6 +1,9 @@
 use rand::thread_rng;
 use rand_distr::{Distribution, Normal};
 use rayon::prelude::*;
+use reqwest::blocking::Client;
+use serde::Deserialize;
+use std::collections::BTreeMap;
 
 /// Calculates a single step of geometric Brownian motion
 ///
@@ -129,23 +132,56 @@ pub fn generate_gbm_paths_from_prices(
         .collect()
 }
 
+#[derive(Deserialize)]
+struct DailyData {
+    #[serde(rename = "4. close")]
+    close: String,
+}
+
+#[derive(Deserialize)]
+struct ApiResponse {
+    #[serde(rename = "Time Series (Daily)")]
+    time_series: BTreeMap<String, DailyData>,
+}
+
 /// Fetches historical prices from the Alpha Vantage API
 ///
 /// # Arguments
 /// * `symbol` - The stock symbol to fetch prices for
 /// * `api_key` - Your Alpha Vantage API key
-/// * `start_date` - The start date for fetching prices
-/// * `end_date` - The end date for fetching prices
+/// * `start_date` - The start date for fetching prices (YYYY-MM-DD)
+/// * `end_date` - The end date for fetching prices (YYYY-MM-DD)
 ///
 /// # Returns
-/// A vector of historical prices
+/// A vector of historical closing prices in chronological order (oldest to newest)
 pub fn fetch_historical_prices(
     symbol: &str,
     api_key: &str,
     start_date: &str,
     end_date: &str,
 ) -> Vec<f64> {
-    vec![]
+    let url = format!(
+        "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={}&apikey={}&outputsize=full",
+        symbol, api_key
+    );
+
+    let client = Client::new();
+    let response = client.get(&url).send().unwrap();
+    let api_data: ApiResponse = response.json().unwrap();
+
+    // Filter dates within the specified range and extract closing prices
+    let mut prices: Vec<(String, f64)> = api_data
+        .time_series
+        .iter()
+        .filter(|(date, _)| date.as_str() >= start_date && date.as_str() <= end_date)
+        .map(|(date, data)| (date.clone(), data.close.parse::<f64>().unwrap_or(0.0)))
+        .collect();
+
+    // Sort by date (oldest first)
+    prices.sort_by(|(date_a, _), (date_b, _)| date_a.cmp(date_b));
+
+    // Return just the prices
+    prices.into_iter().map(|(_, price)| price).collect()
 }
 
 #[cfg(test)]
@@ -262,5 +298,19 @@ mod tests {
                 assert!(path[i] > 0.0);
             }
         }
+    }
+
+    #[test]
+    #[ignore] // Requires a valid API key and network connection
+    fn fetch_historical_prices_test() {
+        use std::env;
+        dotenvy::dotenv().ok();
+
+        let api_key = env::var("ALPHAVANTAGE_API_KEY").unwrap();
+
+        let result = fetch_historical_prices("AAPL", &api_key, "2025-03-01", "2025-04-01");
+
+        assert!(!result.is_empty());
+        assert!(result.iter().all(|&price| price > 0.0));
     }
 }
