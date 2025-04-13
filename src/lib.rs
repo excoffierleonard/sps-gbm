@@ -251,7 +251,7 @@ pub fn plot_results(symbol: &str, simulated_paths: &[Vec<(NaiveDate, f64)>]) -> 
     ));
 
     // Create the chart
-    let root = BitMapBackend::new(&output_path, (1920, 1080)).into_drawing_area();
+    let root = BitMapBackend::new(&output_path, (3840, 2160)).into_drawing_area();
     root.fill(&WHITE).unwrap();
 
     let chart_title = format!("Price Simulation for {}", symbol);
@@ -518,7 +518,7 @@ mod tests {
         let api_key = env::var("ALPHAVANTAGE_API_KEY").unwrap();
 
         let output_path =
-            simulate_and_plot("AAPL", &api_key, "2025-03-01", "2025-04-01", 252, 1000);
+            simulate_and_plot("AAPL", &api_key, "2025-01-01", "2025-04-01", 100, 1000);
 
         println!("Plot saved to: {:?}", output_path);
 
