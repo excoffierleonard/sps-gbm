@@ -2,8 +2,8 @@ use rand::thread_rng;
 use rand_distr::{Distribution, Normal};
 use rayon::prelude::*;
 use reqwest::blocking::Client;
-use serde::Deserialize;
-use std::collections::BTreeMap;
+use serde::{Deserialize, Serialize};
+use std::{collections::BTreeMap, fs, path::Path};
 
 /// Calculates a single step of geometric Brownian motion
 ///
@@ -132,13 +132,13 @@ pub fn generate_gbm_paths_from_prices(
         .collect()
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct DailyData {
     #[serde(rename = "4. close")]
     close: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct ApiResponse {
     #[serde(rename = "Time Series (Daily)")]
     time_series: BTreeMap<String, DailyData>,
@@ -160,7 +160,40 @@ pub fn fetch_historical_prices(
     start_date: &str,
     end_date: &str,
 ) -> Vec<f64> {
-    // TODO: "Create some caching that fetches for the already downloaded json if the ticker is the same, and if datae are included into the already present cache"
+    // Create cache directory if it doesn't exist
+    let cache_dir = Path::new("cache");
+    if !cache_dir.exists() {
+        fs::create_dir_all(cache_dir).unwrap();
+    }
+
+    // Check if we have cached data for this ticker
+    let cache_file = cache_dir.join(format!("{}.json", symbol));
+
+    // TODO: Verify that the funciton does indeed check for date bounds being present
+
+    if cache_file.exists() {
+        println!("Using cached data for {}", symbol);
+        let cached_data = fs::read_to_string(&cache_file).unwrap();
+
+        let api_data: ApiResponse = serde_json::from_str(&cached_data).unwrap();
+
+        // Filter dates within the specified range and extract closing prices
+        let mut prices: Vec<(String, f64)> = api_data
+            .time_series
+            .iter()
+            .filter(|(date, _)| date.as_str() >= start_date && date.as_str() <= end_date)
+            .map(|(date, data)| (date.clone(), data.close.parse::<f64>().unwrap_or(0.0)))
+            .collect();
+
+        // Sort by date (oldest first)
+        prices.sort_by(|(date_a, _), (date_b, _)| date_a.cmp(date_b));
+
+        // Return just the prices
+        return prices.into_iter().map(|(_, price)| price).collect();
+    }
+
+    // If no cached data, fetch from API
+    println!("Fetching data for {} from Alpha Vantage...", symbol);
 
     let url = format!(
         "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={}&apikey={}&outputsize=full",
@@ -170,6 +203,10 @@ pub fn fetch_historical_prices(
     let client = Client::new();
     let response = client.get(&url).send().unwrap();
     let api_data: ApiResponse = response.json().unwrap();
+
+    // Cache the data for future use
+    let cached_json = serde_json::to_string(&api_data).unwrap();
+    fs::write(&cache_file, cached_json).unwrap();
 
     // Filter dates within the specified range and extract closing prices
     let mut prices: Vec<(String, f64)> = api_data
