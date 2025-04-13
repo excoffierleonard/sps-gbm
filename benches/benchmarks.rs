@@ -1,6 +1,8 @@
+use chrono::NaiveDate;
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use sps_gbm::{
-    estimate_gbm_parameters, gbm_step, generate_gbm_paths_from_prices, simulate_gbm_path,
+    estimate_gbm_parameters, gbm_step, generate_gbm_paths_from_prices, plot_results,
+    simulate_gbm_path,
 };
 
 fn criterion_benchmark(c: &mut Criterion) {
@@ -39,6 +41,28 @@ fn criterion_benchmark(c: &mut Criterion) {
                 black_box(1.0),
                 black_box(1_000),
                 black_box(10_000),
+            )
+        })
+    });
+    // No benchmark for fetch_historical_prices as it requires network access and api key, might test the caching fetching later
+    g.bench_function("Plot Results", |b| {
+        b.iter(|| {
+            plot_results(
+                black_box("AAPL"),
+                black_box(&vec![
+                    vec![
+                        (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
+                        (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 105.0),
+                        (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 108.0),
+                        (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 110.0),
+                    ],
+                    vec![
+                        (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
+                        (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 95.0),
+                        (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 98.0),
+                        (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 102.0),
+                    ],
+                ]),
             )
         })
     });
