@@ -6,7 +6,6 @@ use std::{
 
 use chrono::NaiveDate;
 use plotters::prelude::*;
-use rand::thread_rng;
 use rand_distr::{Distribution, Normal};
 use rayon::prelude::*;
 use reqwest::blocking::Client;
@@ -53,7 +52,7 @@ pub fn simulate_gbm_path(
     dt: f64,
     num_steps: usize,
 ) -> Vec<f64> {
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
     let normal = Normal::new(0.0, 1.0).unwrap();
 
     // Pregenerate all random z values
@@ -513,8 +512,7 @@ mod tests {
 
         let api_key = env::var("ALPHAVANTAGE_API_KEY").unwrap();
 
-        let output_path =
-            simulate_and_plot("AAPL", &api_key, "2025-01-01", "2025-04-01", 100, 1000);
+        let output_path = simulate_and_plot("AAPL", &api_key, "2025-01-01", "2025-04-01", 100, 100);
 
         println!("Plot saved to: {:?}", output_path);
 
