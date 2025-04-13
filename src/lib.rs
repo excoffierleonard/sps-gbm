@@ -235,11 +235,11 @@ pub fn fetch_historical_prices(
 ///
 /// # Arguments
 /// * `symbol` - The stock symbol
-/// * `simulated_paths` - A map of dates to simulated paths (A transformation of the Vector of paths)
+/// * `simulated_paths` - A vector of simulated paths, where each path is a vector of (date, price) tuples
 ///
 /// # Returns
 /// A PathBuf to the generated plot image
-pub fn plot_results(symbol: &str, simulated_paths: &HashMap<NaiveDate, Vec<f64>>) -> PathBuf {
+pub fn plot_results(symbol: &str, simulated_paths: &Vec<Vec<(NaiveDate, f64)>>) -> PathBuf {
     // Create a temporary file for the output
     let output_path = PathBuf::from(format!(
         "{}.png",
@@ -256,18 +256,16 @@ pub fn plot_results(symbol: &str, simulated_paths: &HashMap<NaiveDate, Vec<f64>>
 
     let chart_title = format!("Price Simulation for {}", symbol);
 
-    let min_date = *simulated_paths.keys().min().unwrap();
-    let max_date = *simulated_paths.keys().max().unwrap();
+    let min_date = simulated_paths[0][0].0;
+    let max_date = simulated_paths[0].last().unwrap().0;
     let min_price = simulated_paths
-        .values()
-        .flat_map(|path| path.iter())
-        .cloned()
-        .fold(f64::INFINITY, f64::min);
+        .iter()
+        .flat_map(|path| path.iter().map(|(_, price)| *price))
+        .fold(f64::INFINITY, |a, b| a.min(b));
     let max_price = simulated_paths
-        .values()
-        .flat_map(|path| path.iter())
-        .cloned()
-        .fold(f64::NEG_INFINITY, f64::max);
+        .iter()
+        .flat_map(|path| path.iter().map(|(_, price)| *price))
+        .fold(0.0_f64, |a, b| a.max(b));
 
     let mut chart = ChartBuilder::on(&root)
         .caption(chart_title, ("SF Mono", 30).into_font())
@@ -278,14 +276,6 @@ pub fn plot_results(symbol: &str, simulated_paths: &HashMap<NaiveDate, Vec<f64>>
         .unwrap();
 
     // Trace the paths by drawing each simulation as a line series
-    for (&start_date, prices) in simulated_paths {
-        let series: Vec<(NaiveDate, f64)> = prices
-            .iter()
-            .enumerate()
-            .map(|(i, &price)| (start_date + chrono::Duration::days(i as i64), price))
-            .collect();
-        chart.draw_series(LineSeries::new(series, &RED)).unwrap();
-    }
 
     root.present().unwrap();
 
@@ -424,8 +414,21 @@ mod tests {
 
     #[test]
     fn plot_results_test() {
-        let simulated_paths = HashMap::new();
-        let output_path = plot_results("AAPL", &simulated_paths);
+        let symbol = "AAPL";
+        let simulated_paths = vec![
+            vec![
+                (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
+                (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 105.0),
+                (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 110.0),
+            ],
+            vec![
+                (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
+                (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 95.0),
+                (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 90.0),
+            ],
+        ];
+
+        let output_path = plot_results(symbol, &simulated_paths);
 
         println!("Plot saved to: {:?}", output_path);
 
