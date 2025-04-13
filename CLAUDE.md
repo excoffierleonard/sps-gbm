@@ -2,36 +2,27 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Build Commands
-- `cargo build --release`: Build the Rust project in release mode
-- `cargo run --release`: Run the Rust simulation
-- `cargo run --release -- -t <TICKER>`: Run with a specific stock ticker
-- `cargo run --release -- -h`: Display help and command options
-- `cargo test`: Run all Rust tests
-- `python main.py`: Run the legacy Python version
+## Build/Test/Run Commands
+
+- Build: `cargo build --release`
+- Run: `cargo run --release`
+- Run with ticker: `cargo run --release -- -t AAPL`
+- Test: `cargo test`
+- Run single test: `cargo test test_name`
+- Run ignored test: `cargo test -- --ignored test_name`
+- Benchmark: `cargo bench`
+- Format: `cargo fmt`
+- Lint: `cargo clippy`
 
 ## Code Style Guidelines
 
-### Rust Guidelines
-- Use snake_case for variables, functions, and file names
-- Use struct-based organization for data
-- Handle errors with anyhow::Result and ? operator
-- Use descriptive variable names that reflect their purpose
-- Always validate user inputs
-- Include inline documentation for functions
-- Use the clap crate for command-line parsing
-
-### Python Guidelines (legacy code)
-- Follow PEP 8 style for Python code
-- Use snake_case for variables and functions
-- Group related functionality into separate functions
-- Handle exceptions appropriately
-- Use pandas for data manipulation
-- Use numpy for numerical operations
-
-### General
-- Add TODO/FIXME comments for future improvements
-- Use constants for magic numbers
-- Ensure proper error messages are displayed to users
-- Maintain type safety and use appropriate data structures
-- Follow Repository conventions for file organization
+- Use Rust 2021 edition style
+- Group imports with std first, then external crates
+- Use doc comments (`///`) for public functions/structs
+- Use descriptive variable names in snake_case
+- Prefer Result/Option for error handling over panics
+- Use rayon for parallelism when processing data
+- In Python code, follow PEP 8 style guidelines
+- Write robust error handling for network operations
+- Cache API responses when possible to reduce network calls
+- Use strongly typed structs when deserializing external data
