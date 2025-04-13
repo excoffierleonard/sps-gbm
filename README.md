@@ -8,11 +8,12 @@ This tool simulates potential future stock prices based on historical data using
 
 ## Features
 
-- Fetch historical stock data from Alpha Vantage
+- Fetch historical stock data from Alpha Vantage API
 - Calculate drift and volatility parameters from historical data
-- Run multiple simulations to generate price distribution
-- Visualize results with price paths and histograms
-- Generate summary statistics for predicted prices
+- Run multiple simulations in parallel using Rayon
+- Visualize results with price paths and distribution histograms
+- Cached API responses to reduce network calls
+- Command-line interface with customizable parameters
 
 ## Installation
 
@@ -22,22 +23,32 @@ cd sps-gbm
 cargo build --release
 ```
 
+You'll need to create a `.env` file with your Alpha Vantage API key:
+
+```
+ALPHAVANTAGE_API_KEY=your_api_key_here
+```
+
 ## Usage
 
 ```bash
-# Run with interactive prompts
+# Run with default parameters (AAPL stock)
 cargo run --release
 
 # Run with a specific ticker
 cargo run --release -- -t AAPL
+
+# Run with custom parameters
+cargo run --release -- -t MSFT -f 2023-01-01 -u 2023-12-31 -s 200 -n 500
 ```
 
-Follow the prompts to enter:
+### Command Line Options
 
-- Stock ticker symbol
-- Historical date range
-- Prediction date
-- Number of simulations
+- `-t, --ticker`: Stock ticker symbol (default: AAPL)
+- `-f, --start-date`: Start date for historical data (default: 2023-01-01)
+- `-u, --end-date`: End date for historical data (default: 2024-12-31)
+- `-s, --steps`: Number of simulation steps (default: 100)
+- `-n, --paths`: Number of simulation paths (default: 100)
 
 ## Example Output
 
