@@ -151,6 +151,12 @@ struct ApiResponse {
     time_series: BTreeMap<String, DailyData>,
 }
 
+#[derive(Deserialize, Serialize)]
+struct PriceData {
+    date: String,
+    price: f64,
+}
+
 /// Fetches historical prices from the Alpha Vantage API
 ///
 /// # Arguments
@@ -176,26 +182,21 @@ pub fn fetch_historical_prices(
     // Check if we have cached data for this ticker
     let cache_file = cache_dir.join(format!("{}.json", symbol));
 
-    // TODO: Verify that the funciton does indeed check for date bounds being present
-
     if cache_file.exists() {
         let cached_data = fs::read_to_string(&cache_file).unwrap();
+        let price_data: Vec<PriceData> = serde_json::from_str(&cached_data).unwrap();
 
-        let api_data: ApiResponse = serde_json::from_str(&cached_data).unwrap();
-
-        // Filter dates within the specified range and extract closing prices
-        let mut prices: Vec<(String, f64)> = api_data
-            .time_series
-            .iter()
-            .filter(|(date, _)| date.as_str() >= start_date && date.as_str() <= end_date)
-            .map(|(date, data)| (date.clone(), data.close.parse::<f64>().unwrap_or(0.0)))
+        // Filter dates within the specified range
+        let mut filtered_prices: Vec<PriceData> = price_data
+            .into_iter()
+            .filter(|data| data.date.as_str() >= start_date && data.date.as_str() <= end_date)
             .collect();
 
         // Sort by date (oldest first)
-        prices.sort_by(|(date_a, _), (date_b, _)| date_a.cmp(date_b));
+        filtered_prices.sort_by(|a, b| a.date.cmp(&b.date));
 
         // Return just the prices
-        return prices.into_iter().map(|(_, price)| price).collect();
+        return filtered_prices.into_iter().map(|data| data.price).collect();
     }
 
     let url = format!(
@@ -205,25 +206,35 @@ pub fn fetch_historical_prices(
 
     let client = Client::new();
     let response = client.get(&url).send().unwrap();
+
+    // Parse API response using the old format
     let api_data: ApiResponse = response.json().unwrap();
 
-    // Cache the data for future use
-    let cached_json = serde_json::to_string(&api_data).unwrap();
-    fs::write(&cache_file, cached_json).unwrap();
-
-    // Filter dates within the specified range and extract closing prices
-    let mut prices: Vec<(String, f64)> = api_data
+    // Transform the data to the new format
+    let price_data: Vec<PriceData> = api_data
         .time_series
         .iter()
-        .filter(|(date, _)| date.as_str() >= start_date && date.as_str() <= end_date)
-        .map(|(date, data)| (date.clone(), data.close.parse::<f64>().unwrap_or(0.0)))
+        .map(|(date, data)| PriceData {
+            date: date.clone(),
+            price: data.close.parse::<f64>().unwrap_or(0.0),
+        })
+        .collect();
+
+    // Cache the data using the new format
+    let cached_json = serde_json::to_string(&price_data).unwrap();
+    fs::write(&cache_file, cached_json).unwrap();
+
+    // Filter dates within the specified range
+    let mut filtered_prices: Vec<PriceData> = price_data
+        .into_iter()
+        .filter(|data| data.date.as_str() >= start_date && data.date.as_str() <= end_date)
         .collect();
 
     // Sort by date (oldest first)
-    prices.sort_by(|(date_a, _), (date_b, _)| date_a.cmp(date_b));
+    filtered_prices.sort_by(|a, b| a.date.cmp(&b.date));
 
     // Return just the prices
-    prices.into_iter().map(|(_, price)| price).collect()
+    filtered_prices.into_iter().map(|data| data.price).collect()
 }
 
 /// Plots the results of the simulation
