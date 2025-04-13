@@ -288,13 +288,11 @@ pub fn plot_results(symbol: &str, simulated_paths: &[Vec<(NaiveDate, f64)>]) -> 
         .unwrap();
 
     // Trace the paths by drawing each simulation as a line series
-    simulated_paths.iter().for_each(|path| {
-        let color = RGBColor(100, 100, 100).mix(0.3);
-
+    simulated_paths.iter().enumerate().for_each(|(i, path)| {
         chart
             .draw_series(LineSeries::new(
                 path.iter().map(|(date, price)| (*date, *price)),
-                color,
+                Palette99::pick(i),
             ))
             .unwrap();
     });
