@@ -275,9 +275,20 @@ pub fn plot_results(symbol: &str, simulated_paths: &[Vec<(NaiveDate, f64)>]) -> 
         .build_cartesian_2d(min_date..max_date, min_price..max_price)
         .unwrap();
 
+    // Add some styling and formatting
+    chart
+        .configure_mesh()
+        .x_labels(10)
+        .y_labels(10)
+        .x_label_formatter(&|x| x.format("%Y-%m-%d").to_string())
+        .y_label_formatter(&|y| format!("{:.2}", y))
+        .x_desc("Date")
+        .y_desc("Price")
+        .draw()
+        .unwrap();
+
     // Trace the paths by drawing each simulation as a line series
-    for path in simulated_paths.iter() {
-        // Use different colors for paths
+    simulated_paths.iter().for_each(|path| {
         let color = RGBColor(100, 100, 100).mix(0.3);
 
         chart
@@ -286,7 +297,7 @@ pub fn plot_results(symbol: &str, simulated_paths: &[Vec<(NaiveDate, f64)>]) -> 
                 color,
             ))
             .unwrap();
-    }
+    });
 
     root.present().unwrap();
 
