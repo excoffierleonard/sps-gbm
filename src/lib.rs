@@ -160,7 +160,7 @@ pub fn fetch_historical_prices(
     start_date: &str,
     end_date: &str,
 ) -> Vec<f64> {
-    // TODO: "Create some caching that fetches for the already downloaded json if the ticker is the same")
+    // TODO: "Create some caching that fetches for the already downloaded json if the ticker is the same, and if datae are included into the already present cache"
 
     let url = format!(
         "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={}&apikey={}&outputsize=full",
