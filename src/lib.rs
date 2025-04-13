@@ -180,7 +180,6 @@ pub fn fetch_historical_prices(
     // TODO: Verify that the funciton does indeed check for date bounds being present
 
     if cache_file.exists() {
-        println!("Using cached data for {}", symbol);
         let cached_data = fs::read_to_string(&cache_file).unwrap();
 
         let api_data: ApiResponse = serde_json::from_str(&cached_data).unwrap();
@@ -199,9 +198,6 @@ pub fn fetch_historical_prices(
         // Return just the prices
         return prices.into_iter().map(|(_, price)| price).collect();
     }
-
-    // If no cached data, fetch from API
-    println!("Fetching data for {} from Alpha Vantage...", symbol);
 
     let url = format!(
         "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={}&apikey={}&outputsize=full",
