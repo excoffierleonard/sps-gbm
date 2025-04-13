@@ -304,6 +304,60 @@ pub fn plot_results(symbol: &str, simulated_paths: &[Vec<(NaiveDate, f64)>]) -> 
     output_path.clone()
 }
 
+/// End-to-end, high-level function to simulate GBM paths and plot results
+///
+/// # Arguments
+/// * `symbol` - The stock symbol to fetch prices for
+/// * `api_key` - Your Alpha Vantage API key
+/// * `start_date` - The start date for fetching prices (YYYY-MM-DD)
+/// * `end_date` - The end date for fetching prices (YYYY-MM-DD)
+/// * `num_steps` - The number of steps to simulate
+/// * `num_paths` - The number of paths to simulate
+///
+/// # Returns
+/// A PathBuf to the generated plot image
+pub fn simulate_and_plot(
+    symbol: &str,
+    api_key: &str,
+    start_date: &str,
+    end_date: &str,
+    num_steps: usize,
+    num_paths: usize,
+) -> PathBuf {
+    // Fetch historical prices
+    let historical_prices = fetch_historical_prices(symbol, api_key, start_date, end_date);
+
+    // Calculate dt (time step as fraction of year)
+    let dt = 1.0 / 252.0; // Standard trading days in a year
+
+    // Generate simulated paths
+    let paths = generate_gbm_paths_from_prices(&historical_prices, dt, num_steps, num_paths);
+
+    // Create future dates for simulation
+    let last_historical_date = NaiveDate::parse_from_str(end_date, "%Y-%m-%d").unwrap();
+    let future_dates: Vec<NaiveDate> = (0..=num_steps)
+        .map(|i| {
+            last_historical_date
+                .checked_add_days(chrono::Days::new(i as u64))
+                .unwrap()
+        })
+        .collect();
+
+    // Combine paths with dates
+    let dated_paths: Vec<Vec<(NaiveDate, f64)>> = paths
+        .iter()
+        .map(|path| {
+            path.iter()
+                .enumerate()
+                .map(|(i, &price)| (future_dates[i], price))
+                .collect()
+        })
+        .collect();
+
+    // Plot the results
+    plot_results(symbol, &dated_paths)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -453,6 +507,20 @@ mod tests {
         ];
 
         let output_path = plot_results(symbol, &simulated_paths);
+
+        assert!(output_path.exists());
+        assert_eq!(output_path.extension(), Some("png".as_ref()));
+    }
+
+    #[test]
+    #[ignore] // Requires a valid API key and network connection
+    fn simulate_and_plot_test() {
+        dotenvy::dotenv().ok();
+
+        let api_key = env::var("ALPHAVANTAGE_API_KEY").unwrap();
+
+        let output_path =
+            simulate_and_plot("AAPL", &api_key, "2025-03-01", "2025-04-01", 252, 1000);
 
         println!("Plot saved to: {:?}", output_path);
 
