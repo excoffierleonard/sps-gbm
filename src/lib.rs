@@ -257,7 +257,7 @@ pub fn plot_results(symbol: &str, simulated_paths: &[Vec<(NaiveDate, f64)>]) -> 
     ));
 
     // Create the chart
-    let root = BitMapBackend::new(&output_path, (3840, 2160)).into_drawing_area();
+    let root = BitMapBackend::new(&output_path, (1920, 1080)).into_drawing_area();
     root.fill(&WHITE).unwrap();
 
     let chart_title = format!("Price Simulation for {}", symbol);
