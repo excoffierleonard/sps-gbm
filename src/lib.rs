@@ -1,9 +1,17 @@
+use std::{
+    collections::{BTreeMap, HashMap},
+    fs,
+    path::{Path, PathBuf},
+};
+
+use chrono::NaiveDate;
+use plotters::prelude::*;
 use rand::thread_rng;
 use rand_distr::{Distribution, Normal};
 use rayon::prelude::*;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, fs, path::Path};
+use tempfile::NamedTempFile;
 
 /// Calculates a single step of geometric Brownian motion
 ///
@@ -223,6 +231,67 @@ pub fn fetch_historical_prices(
     prices.into_iter().map(|(_, price)| price).collect()
 }
 
+/// Plots the results of the simulation
+///
+/// # Arguments
+/// * `symbol` - The stock symbol
+/// * `simulated_paths` - A map of dates to simulated paths (A transformation of the Vector of paths)
+///
+/// # Returns
+/// A PathBuf to the generated plot image
+pub fn plot_results(symbol: &str, simulated_paths: &HashMap<NaiveDate, Vec<f64>>) -> PathBuf {
+    // Create a temporary file for the output
+    let output_path = PathBuf::from(format!(
+        "{}.png",
+        NamedTempFile::new()
+            .unwrap()
+            .path()
+            .to_path_buf()
+            .to_string_lossy()
+    ));
+
+    // Create the chart
+    let root = BitMapBackend::new(&output_path, (1920, 1080)).into_drawing_area();
+    root.fill(&WHITE).unwrap();
+
+    let chart_title = format!("Price Simulation for {}", symbol);
+
+    let min_date = *simulated_paths.keys().min().unwrap();
+    let max_date = *simulated_paths.keys().max().unwrap();
+    let min_price = simulated_paths
+        .values()
+        .flat_map(|path| path.iter())
+        .cloned()
+        .fold(f64::INFINITY, f64::min);
+    let max_price = simulated_paths
+        .values()
+        .flat_map(|path| path.iter())
+        .cloned()
+        .fold(f64::NEG_INFINITY, f64::max);
+
+    let mut chart = ChartBuilder::on(&root)
+        .caption(chart_title, ("SF Mono", 30).into_font())
+        .margin(10)
+        .x_label_area_size(50)
+        .y_label_area_size(60)
+        .build_cartesian_2d(min_date..max_date, min_price..max_price)
+        .unwrap();
+
+    // Trace the paths by drawing each simulation as a line series
+    for (&start_date, prices) in simulated_paths {
+        let series: Vec<(NaiveDate, f64)> = prices
+            .iter()
+            .enumerate()
+            .map(|(i, &price)| (start_date + chrono::Duration::days(i as i64), price))
+            .collect();
+        chart.draw_series(LineSeries::new(series, &RED)).unwrap();
+    }
+
+    root.present().unwrap();
+
+    output_path.clone()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -351,5 +420,16 @@ mod tests {
 
         assert!(!result.is_empty());
         assert!(result.iter().all(|&price| price > 0.0));
+    }
+
+    #[test]
+    fn plot_results_test() {
+        let simulated_paths = HashMap::new();
+        let output_path = plot_results("AAPL", &simulated_paths);
+
+        println!("Plot saved to: {:?}", output_path);
+
+        assert!(output_path.exists());
+        assert_eq!(output_path.extension(), Some("png".as_ref()));
     }
 }
