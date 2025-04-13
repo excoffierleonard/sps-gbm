@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::BTreeMap,
     fs,
     path::{Path, PathBuf},
 };
@@ -239,7 +239,7 @@ pub fn fetch_historical_prices(
 ///
 /// # Returns
 /// A PathBuf to the generated plot image
-pub fn plot_results(symbol: &str, simulated_paths: &Vec<Vec<(NaiveDate, f64)>>) -> PathBuf {
+pub fn plot_results(symbol: &str, simulated_paths: &[Vec<(NaiveDate, f64)>]) -> PathBuf {
     // Create a temporary file for the output
     let output_path = PathBuf::from(format!(
         "{}.png",
@@ -276,6 +276,17 @@ pub fn plot_results(symbol: &str, simulated_paths: &Vec<Vec<(NaiveDate, f64)>>) 
         .unwrap();
 
     // Trace the paths by drawing each simulation as a line series
+    for path in simulated_paths.iter() {
+        // Use different colors for paths
+        let color = RGBColor(100, 100, 100).mix(0.3);
+
+        chart
+            .draw_series(LineSeries::new(
+                path.iter().map(|(date, price)| (*date, *price)),
+                color,
+            ))
+            .unwrap();
+    }
 
     root.present().unwrap();
 
@@ -419,12 +430,14 @@ mod tests {
             vec![
                 (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
                 (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 105.0),
-                (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 110.0),
+                (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 108.0),
+                (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 110.0),
             ],
             vec![
                 (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
                 (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 95.0),
-                (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 90.0),
+                (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 98.0),
+                (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 102.0),
             ],
         ];
 
