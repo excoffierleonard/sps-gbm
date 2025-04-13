@@ -226,6 +226,7 @@ pub fn fetch_historical_prices(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::env;
 
     #[test]
     fn gbm_step_formula() {
@@ -342,7 +343,6 @@ mod tests {
     #[test]
     #[ignore] // Requires a valid API key and network connection
     fn fetch_historical_prices_test() {
-        use std::env;
         dotenvy::dotenv().ok();
 
         let api_key = env::var("ALPHAVANTAGE_API_KEY").unwrap();
