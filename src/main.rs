@@ -56,15 +56,15 @@ fn main() {
     // Print the simulation results
     println!("Simulation Results:");
     println!("Ticker: {}", args.ticker);
-    println!("Mean Price: {}", stats.mean);
-    println!("Median Price: {}", stats.median);
-    println!("Standard Deviation: {}", stats.std_dev);
+    println!("Mean Price: {:.2}", stats.mean);
+    println!("Median Price: {:.2}", stats.median);
+    println!("Standard Deviation: {:.2}", stats.std_dev);
     println!(
-        "Confidence Interval (95%): [{}, {}]",
+        "Confidence Interval (95%): [{:.2}, {:.2}]",
         stats.confidence_interval_95.lower_bound, stats.confidence_interval_95.upper_bound
     );
     println!(
-        "Percentiles 10th: {}, 25th: {}, 75th: {}, 90th: {}",
+        "Percentiles 10th: {:.2}, 25th: {:.2}, 75th: {:.2}, 90th: {:.2}",
         stats.percentiles.p10, stats.percentiles.p25, stats.percentiles.p75, stats.percentiles.p90
     );
 
