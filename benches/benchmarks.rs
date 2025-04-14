@@ -39,7 +39,6 @@ fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| {
             generate_gbm_paths_from_prices(
                 black_box(&[100.0, 105.0, 110.0, 115.0]),
-                black_box(1.0),
                 black_box(1_000),
                 black_box(10_000),
             )

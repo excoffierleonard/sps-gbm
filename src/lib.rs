@@ -44,11 +44,8 @@ pub fn generate_simulation(
     let historical_prices =
         fetch_historical_prices_alphavantage(symbol, api_key, start_date, end_date);
 
-    // Calculate dt (time step as fraction of year)
-    let dt = 1.0 / 252.0; // Standard trading days in a year
-
     // Generate simulated paths
-    let paths = generate_gbm_paths_from_prices(&historical_prices, dt, num_steps, num_paths);
+    let paths = generate_gbm_paths_from_prices(&historical_prices, num_steps, num_paths);
 
     // Create future dates for simulation
     let last_historical_date = NaiveDate::parse_from_str(end_date, "%Y-%m-%d").unwrap();

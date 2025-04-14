@@ -101,7 +101,6 @@ pub fn estimate_gbm_parameters(prices: &[f64], dt: f64) -> GBMParameters {
 /// # Arguments
 ///
 /// * `prices` - Vector of historical prices
-/// * `dt` - The time step (fraction of a year) between each price observation
 /// * `num_steps` - The number of steps to simulate
 /// * `num_paths` - The number of paths to simulate
 ///
@@ -110,10 +109,12 @@ pub fn estimate_gbm_parameters(prices: &[f64], dt: f64) -> GBMParameters {
 /// A vector of vectors, where each inner vector represents a simulated path
 pub fn generate_gbm_paths_from_prices(
     prices: &[f64],
-    dt: f64,
     num_steps: usize,
     num_paths: usize,
 ) -> Vec<Vec<f64>> {
+    // Hardcoded dt value since here the time step between the historical prices and the simulated prices are the same
+    let dt = 1.0;
+
     let gbm_parameters = estimate_gbm_parameters(prices, dt);
     let initial_value = prices[0];
 
@@ -315,11 +316,10 @@ mod tests {
     #[test]
     fn generate_gbm_paths_from_prices_correct() {
         let prices = vec![100.0, 105.0, 110.0];
-        let dt = 1.0;
         let num_steps = 10;
         let num_paths = 5;
 
-        let paths = generate_gbm_paths_from_prices(&prices, dt, num_steps, num_paths);
+        let paths = generate_gbm_paths_from_prices(&prices, num_steps, num_paths);
 
         assert_eq!(paths.len(), num_paths);
         for path in paths.iter() {
