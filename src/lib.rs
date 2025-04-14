@@ -467,6 +467,7 @@ pub fn calculate_summary_stats(prices: &[f64]) -> SummaryStats {
         median: data.median(),
         std_dev,
         confidence_interval_95: ConfidenceInterval {
+            // TODO: Fix, Might not be correct calculation for CI
             lower_bound: mean - z_score * std_error,
             upper_bound: mean + z_score * std_error,
         },
