@@ -1,6 +1,6 @@
 use std::env;
 
-use sps_gbm::simulate_and_plot;
+use sps_gbm::generate_simulation;
 
 use clap::Parser;
 
@@ -42,7 +42,7 @@ fn main() {
     );
 
     // Run simulation and generate plot
-    let output_path = simulate_and_plot(
+    let simulation_result = generate_simulation(
         &args.ticker,
         &api_key,
         &args.start_date,
@@ -51,5 +51,22 @@ fn main() {
         args.paths,
     );
 
-    println!("{}", output_path.display());
+    let stats = simulation_result.summary_stats;
+
+    // Print the simulation results
+    println!("Simulation Results:");
+    println!("Ticker: {}", args.ticker);
+    println!("Mean Price: {:.2}", stats.mean);
+    println!("Median Price: {:.2}", stats.median);
+    println!("Standard Deviation: {:.2}", stats.std_dev);
+    println!(
+        "Confidence Interval (95%): [{:.2}, {:.2}]",
+        stats.confidence_interval_95.lower_bound, stats.confidence_interval_95.upper_bound
+    );
+    println!(
+        "Percentiles 10th: {:.2}, 25th: {:.2}, 75th: {:.2}, 90th: {:.2}",
+        stats.percentiles.p10, stats.percentiles.p25, stats.percentiles.p75, stats.percentiles.p90
+    );
+
+    println!("{}", simulation_result.plot_path.display());
 }
