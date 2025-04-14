@@ -52,18 +52,15 @@ cargo run --release -- -t MSFT -f 2023-01-01 -u 2023-12-31 -s 200 -n 500
 
 ## Example Output
 
-```
-Stock Ticker: AAPL
-Annualized Mean Return (μ): 0.5785
-Annualized Volatility (σ): 0.1984
-Most Recent Closing Price: 192.02
-
-Summary of Predicted Stock Prices after 366 days (on 2025-01-01):
-Mean Final Price: 345.32 (79.83%)
-Median Final Price: 339.59
-Standard Deviation of Final Prices: 70.44
-95% Confidence Interval: (207.26, 483.38)
-Percentiles: 10th 257.40, 25th 293.76, 75th 386.72, 90th 443.00
+```bash
+Simulation Results:
+Ticker: AAPL
+Mean Price: 233.61
+Median Price: 232.33
+Standard Deviation: 23.35
+Confidence Interval (95%): [233.15, 234.07]
+Percentiles 10th: 204.17, 25th: 217.19, 75th: 248.73, 90th: 264.01
+/var/folders/bc/8p9v9s1575b7f_bm71jvxps00000gn/T/.tmp3S3gUa.png
 ```
 
 ![Simulated Stock Price Paths & Summary](example.png)

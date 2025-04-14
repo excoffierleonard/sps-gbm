@@ -44,11 +44,8 @@ pub fn generate_simulation(
     let historical_prices =
         fetch_historical_prices_alphavantage(symbol, api_key, start_date, end_date);
 
-    // Calculate dt (time step as fraction of year)
-    let dt = 1.0 / 252.0; // Standard trading days in a year
-
     // Generate simulated paths
-    let paths = generate_gbm_paths_from_prices(&historical_prices, dt, num_steps, num_paths);
+    let paths = generate_gbm_paths_from_prices(&historical_prices, num_steps, num_paths);
 
     // Create future dates for simulation
     let last_historical_date = NaiveDate::parse_from_str(end_date, "%Y-%m-%d").unwrap();
@@ -79,5 +76,39 @@ pub fn generate_simulation(
                 .map(|path| path.last().copied().unwrap())
                 .collect::<Vec<f64>>(),
         ),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::env;
+
+    #[test]
+    #[ignore] // Requires a valid API key and network connection
+    fn generate_simulation_test() {
+        dotenvy::dotenv().ok();
+
+        let api_key = env::var("ALPHAVANTAGE_API_KEY").unwrap();
+
+        let simulation_result =
+            generate_simulation("AAPL", &api_key, "2025-01-01", "2025-04-01", 100, 100);
+
+        let plot_path = simulation_result.plot_path;
+        assert!(plot_path.exists());
+        assert_eq!(plot_path.extension(), Some("png".as_ref()));
+
+        let stats = simulation_result.summary_stats;
+        assert!(stats.mean > 0.0);
+        assert!(stats.median > 0.0);
+        assert!(stats.std_dev > 0.0);
+        assert!(stats.confidence_interval_95.lower_bound < stats.mean);
+        assert!(stats.confidence_interval_95.upper_bound > stats.mean);
+        assert!(stats.percentiles.p5 < stats.percentiles.p10);
+        assert!(stats.percentiles.p10 < stats.percentiles.p25);
+        assert!(stats.percentiles.p25 < stats.percentiles.p50);
+        assert!(stats.percentiles.p50 < stats.percentiles.p75);
+        assert!(stats.percentiles.p75 < stats.percentiles.p90);
+        assert!(stats.percentiles.p90 < stats.percentiles.p95);
     }
 }
