@@ -1,12 +1,7 @@
 [package]
 name = "sps-gbm"
 version = "0.1.0"
-edition = "2021"
-
-[package.metadata.cargo-audit]
-ignore = [
-    "RUSTSEC-2024-0436", # paste is unmaintained but no replacement available yet
-]
+edition = "2024"
 
 [dependencies]
 chrono = "0.4.40"
