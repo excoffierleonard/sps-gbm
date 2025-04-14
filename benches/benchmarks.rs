@@ -1,8 +1,8 @@
 use chrono::NaiveDate;
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use sps_gbm::{
-    estimate_gbm_parameters, gbm_step, generate_gbm_paths_from_prices, plot_results,
-    simulate_gbm_path,
+    calculate_summary_stats, estimate_gbm_parameters, gbm_step, generate_gbm_paths_from_prices,
+    plot_results, simulate_gbm_path,
 };
 
 fn criterion_benchmark(c: &mut Criterion) {
@@ -65,6 +65,9 @@ fn criterion_benchmark(c: &mut Criterion) {
                 ]),
             )
         })
+    });
+    g.bench_function("Calculate Summary Stats", |b| {
+        b.iter(|| calculate_summary_stats(black_box(&vec![10.0, 20.0, 30.0, 40.0, 50.0])))
     });
 }
 

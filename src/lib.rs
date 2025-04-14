@@ -6,11 +6,11 @@ use std::{
 
 use chrono::NaiveDate;
 use plotters::prelude::*;
-use rand_distr::{Distribution, Normal};
+use rand_distr::{Distribution as RandDistribution, Normal};
 use rayon::prelude::*;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
-use statrs::statistics::{Data, Median};
+use statrs::statistics::{Data, Distribution as StatsDistribution, Median, OrderStatistics};
 use tempfile::NamedTempFile;
 
 /// Calculates a single step of geometric Brownian motion
@@ -57,7 +57,9 @@ pub fn simulate_gbm_path(
     let normal = Normal::new(0.0, 1.0).unwrap();
 
     // Pregenerate all random z values
-    let z_values: Vec<f64> = (0..num_steps).map(|_| normal.sample(&mut rng)).collect();
+    let z_values: Vec<f64> = (0..num_steps)
+        .map(|_| RandDistribution::sample(&normal, &mut rng))
+        .collect();
 
     let mut path = Vec::with_capacity(num_steps + 1);
     path.push(initial_value);
@@ -402,10 +404,30 @@ pub fn simulate_and_plot(
     plot_results(symbol, &dated_paths)
 }
 
+#[derive(Debug)]
+pub struct ConfidenceInterval {
+    pub lower_bound: f64,
+    pub upper_bound: f64,
+}
+
+#[derive(Debug)]
+pub struct Percenticles {
+    pub p5: f64,
+    pub p10: f64,
+    pub p25: f64,
+    pub p50: f64,
+    pub p75: f64,
+    pub p90: f64,
+    pub p95: f64,
+}
+
+#[derive(Debug)]
 pub struct SummaryStats {
     pub mean: f64,
     pub median: f64,
-    pub stddev: f64,
+    pub std_dev: f64,
+    pub confidence_interval_95: ConfidenceInterval,
+    pub percentiles: Percenticles,
 }
 
 /// Calculates summary statistics for a vector of final prices
@@ -416,16 +438,33 @@ pub struct SummaryStats {
 /// # Returns
 /// A SummaryStats struct each field representing a summary statistic
 pub fn calculate_summary_stats(prices: &[f64]) -> SummaryStats {
-    let data = Data::new(prices.to_vec());
-    let mean = prices.iter().copied().sum::<f64>() / prices.len() as f64;
-    let variance =
-        prices.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / (prices.len() - 1) as f64;
-    let stddev = variance.sqrt();
+    let mut data = Data::new(prices.to_vec());
+
+    let mean = data.mean().unwrap();
+    let std_dev = data.std_dev().unwrap();
+    let n = prices.len() as f64;
+    let std_error = std_dev / n.sqrt();
+
+    // Using 1.96 for 95% confidence interval (normal distribution)
+    let z_score = 1.96;
 
     SummaryStats {
         mean,
         median: data.median(),
-        stddev,
+        std_dev,
+        confidence_interval_95: ConfidenceInterval {
+            lower_bound: mean - z_score * std_error,
+            upper_bound: mean + z_score * std_error,
+        },
+        percentiles: Percenticles {
+            p5: data.percentile(5),
+            p10: data.percentile(10),
+            p25: data.percentile(25),
+            p50: data.percentile(50),
+            p75: data.percentile(75),
+            p90: data.percentile(90),
+            p95: data.percentile(95),
+        },
     }
 }
 
@@ -483,11 +522,18 @@ mod tests {
         let prices = vec![10.0, 20.0, 30.0, 40.0, 50.0];
         let stats = calculate_summary_stats(&prices);
 
-        println!("Mean: {}", stats.mean);
-
         assert_eq!(stats.mean, 30.0);
         assert_eq!(stats.median, 30.0);
-        assert!((stats.stddev - 15.811388300841896).abs() < 1e-10);
+        assert_eq!(stats.std_dev, 15.811388300841896);
+        assert_eq!(stats.confidence_interval_95.lower_bound, 16.140707088743667);
+        assert_eq!(stats.confidence_interval_95.upper_bound, 43.85929291125633);
+        assert_eq!(stats.percentiles.p5, 10.0);
+        assert_eq!(stats.percentiles.p10, 10.0);
+        assert_eq!(stats.percentiles.p25, 16.666666666666664);
+        assert_eq!(stats.percentiles.p50, 30.0);
+        assert_eq!(stats.percentiles.p75, 43.33333333333333);
+        assert_eq!(stats.percentiles.p90, 50.0);
+        assert_eq!(stats.percentiles.p95, 50.0);
     }
 
     #[test]
