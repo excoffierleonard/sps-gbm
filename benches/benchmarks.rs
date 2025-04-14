@@ -1,9 +1,10 @@
-use chrono::NaiveDate;
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use sps_gbm::{
     calculate_summary_stats, estimate_gbm_parameters, gbm_step, generate_gbm_paths_from_prices,
     plot_results, simulate_gbm_path,
 };
+
+use chrono::NaiveDate;
+use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("GBM");
