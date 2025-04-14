@@ -51,5 +51,22 @@ fn main() {
         args.paths,
     );
 
+    let stats = simulation_result.summary_stats;
+
+    // Print the simulation results
+    println!("Simulation Results:");
+    println!("Ticker: {}", args.ticker);
+    println!("Mean Price: {}", stats.mean);
+    println!("Median Price: {}", stats.median);
+    println!("Standard Deviation: {}", stats.std_dev);
+    println!(
+        "Confidence Interval (95%): [{}, {}]",
+        stats.confidence_interval_95.lower_bound, stats.confidence_interval_95.upper_bound
+    );
+    println!(
+        "Percentiles 10th: {}, 25th: {}, 75th: {}, 90th: {}",
+        stats.percentiles.p10, stats.percentiles.p25, stats.percentiles.p75, stats.percentiles.p90
+    );
+
     println!("{}", simulation_result.plot_path.display());
 }
