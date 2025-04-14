@@ -1,6 +1,6 @@
 use std::env;
 
-use sps_gbm::simulate_and_plot;
+use sps_gbm::generate_simulation;
 
 use clap::Parser;
 
@@ -42,7 +42,7 @@ fn main() {
     );
 
     // Run simulation and generate plot
-    let output_path = simulate_and_plot(
+    let simulation_result = generate_simulation(
         &args.ticker,
         &api_key,
         &args.start_date,
@@ -51,5 +51,5 @@ fn main() {
         args.paths,
     );
 
-    println!("{}", output_path.display());
+    println!("{}", simulation_result.plot_path.display());
 }
