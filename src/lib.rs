@@ -361,7 +361,7 @@ pub fn plot_results(symbol: &str, simulated_paths: &[Vec<(NaiveDate, f64)>]) -> 
 ///
 /// # Returns
 /// A PathBuf to the generated plot image
-pub fn simulate_and_plot(
+pub fn generate_simulation(
     symbol: &str,
     api_key: &str,
     start_date: &str,
@@ -644,12 +644,13 @@ mod tests {
 
     #[test]
     #[ignore] // Requires a valid API key and network connection
-    fn simulate_and_plot_test() {
+    fn generate_simulation_test() {
         dotenvy::dotenv().ok();
 
         let api_key = env::var("ALPHAVANTAGE_API_KEY").unwrap();
 
-        let output_path = simulate_and_plot("AAPL", &api_key, "2025-01-01", "2025-04-01", 100, 100);
+        let output_path =
+            generate_simulation("AAPL", &api_key, "2025-01-01", "2025-04-01", 100, 100);
 
         println!("Plot saved to: {:?}", output_path);
 
