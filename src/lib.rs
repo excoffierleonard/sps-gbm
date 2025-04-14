@@ -167,11 +167,7 @@ pub struct PriceData {
 /// # Returns
 /// An Option containing a vector of historical closing prices if cache exists,
 /// or None if no cache is available
-pub fn get_cached_prices(
-    symbol: &str,
-    start_date: &str,
-    end_date: &str,
-) -> Option<Vec<f64>> {
+pub fn get_cached_prices(symbol: &str, start_date: &str, end_date: &str) -> Option<Vec<f64>> {
     // Create cache directory if it doesn't exist
     let cache_dir = Path::new("cache");
     if !cache_dir.exists() {
@@ -214,7 +210,7 @@ pub fn cache_prices(symbol: &str, price_data: Vec<PriceData>) -> std::io::Result
     if !cache_dir.exists() {
         fs::create_dir_all(cache_dir)?;
     }
-    
+
     let cache_file = cache_dir.join(format!("{}.json", symbol));
     let cached_json = serde_json::to_string(&price_data).unwrap();
     fs::write(&cache_file, cached_json)
@@ -230,7 +226,7 @@ pub fn cache_prices(symbol: &str, price_data: Vec<PriceData>) -> std::io::Result
 ///
 /// # Returns
 /// A vector of historical closing prices in chronological order (oldest to newest)
-pub fn fetch_historical_prices(
+pub fn fetch_historical_prices_alphavantage(
     symbol: &str,
     api_key: &str,
     start_date: &str,
@@ -371,7 +367,8 @@ pub fn simulate_and_plot(
     num_paths: usize,
 ) -> PathBuf {
     // Fetch historical prices
-    let historical_prices = fetch_historical_prices(symbol, api_key, start_date, end_date);
+    let historical_prices =
+        fetch_historical_prices_alphavantage(symbol, api_key, start_date, end_date);
 
     // Calculate dt (time step as fraction of year)
     let dt = 1.0 / 252.0; // Standard trading days in a year
@@ -528,7 +525,8 @@ mod tests {
 
         let api_key = env::var("ALPHAVANTAGE_API_KEY").unwrap();
 
-        let result = fetch_historical_prices("AAPL", &api_key, "2025-03-01", "2025-04-01");
+        let result =
+            fetch_historical_prices_alphavantage("AAPL", &api_key, "2025-03-01", "2025-04-01");
 
         assert!(!result.is_empty());
         assert!(result.iter().all(|&price| price > 0.0));
