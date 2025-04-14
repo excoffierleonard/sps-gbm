@@ -10,6 +10,7 @@ use rand_distr::{Distribution, Normal};
 use rayon::prelude::*;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
+use statrs::statistics::{Data, Median};
 use tempfile::NamedTempFile;
 
 /// Calculates a single step of geometric Brownian motion
@@ -401,6 +402,33 @@ pub fn simulate_and_plot(
     plot_results(symbol, &dated_paths)
 }
 
+pub struct SummaryStats {
+    pub mean: f64,
+    pub median: f64,
+    pub stddev: f64,
+}
+
+/// Calculates summary statistics for a vector of final prices
+///
+/// # Arguments
+/// * `prices` - A slice of f64 values representing the final prices of all simulated paths
+///
+/// # Returns
+/// A SummaryStats struct each field representing a summary statistic
+pub fn calculate_summary_stats(prices: &[f64]) -> SummaryStats {
+    let data = Data::new(prices.to_vec());
+    let mean = prices.iter().copied().sum::<f64>() / prices.len() as f64;
+    let variance =
+        prices.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / (prices.len() - 1) as f64;
+    let stddev = variance.sqrt();
+
+    SummaryStats {
+        mean,
+        median: data.median(),
+        stddev,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -448,6 +476,18 @@ mod tests {
             let next_value = gbm_step(tc.current_value, tc.drift, tc.volatility, tc.dt, tc.z);
             assert_eq!(next_value, tc.expected);
         }
+    }
+
+    #[test]
+    fn calculate_summary_stats_test() {
+        let prices = vec![10.0, 20.0, 30.0, 40.0, 50.0];
+        let stats = calculate_summary_stats(&prices);
+
+        println!("Mean: {}", stats.mean);
+
+        assert_eq!(stats.mean, 30.0);
+        assert_eq!(stats.median, 30.0);
+        assert!((stats.stddev - 15.811388300841896).abs() < 1e-10);
     }
 
     #[test]
