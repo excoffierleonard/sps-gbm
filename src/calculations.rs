@@ -61,6 +61,34 @@ pub fn simulate_gbm_path(
     path
 }
 
+/// Simulates multiple paths of geometric Brownian motion
+///
+/// # Arguments
+///
+/// * `initial_value` - The initial value S(0)
+/// * `drift` - The drift parameter μ
+/// * `volatility` - The volatility parameter σ
+/// * `dt` - The time step Δt
+/// * `num_steps` - The number of steps to simulate
+/// * `num_paths` - The number of paths to simulate
+///
+/// # Returns
+///
+/// A vector of vectors, where each inner vector represents a simulated path
+pub fn simulate_gbm_paths(
+    initial_value: f64,
+    drift: f64,
+    volatility: f64,
+    dt: f64,
+    num_steps: usize,
+    num_paths: usize,
+) -> Vec<Vec<f64>> {
+    (0..num_paths)
+        .into_par_iter()
+        .map(|_| simulate_gbm_path(initial_value, drift, volatility, dt, num_steps))
+        .collect()
+}
+
 pub struct GBMParameters {
     pub drift: f64,
     pub volatility: f64,
@@ -94,20 +122,6 @@ pub fn estimate_gbm_parameters(prices: &[f64], dt: f64) -> GBMParameters {
     let drift = mean_log_return / dt + 0.5 * volatility.powi(2);
 
     GBMParameters { drift, volatility }
-}
-
-pub fn simulate_gbm_paths(
-    initial_value: f64,
-    drift: f64,
-    volatility: f64,
-    dt: f64,
-    num_steps: usize,
-    num_paths: usize,
-) -> Vec<Vec<f64>> {
-    (0..num_paths)
-        .into_par_iter()
-        .map(|_| simulate_gbm_path(initial_value, drift, volatility, dt, num_steps))
-        .collect()
 }
 
 /// Generate GBM paths from historical prices
