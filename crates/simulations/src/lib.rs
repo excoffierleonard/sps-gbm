@@ -1,5 +1,5 @@
 use rand::rng;
-use rand_distr::{Distribution as RandDistribution, Normal};
+use rand_distr::{Distribution as RandDistribution, StandardNormal};
 use rayon::prelude::*;
 
 /// Calculates a single step of geometric Brownian motion
@@ -20,6 +20,20 @@ fn gbm_step(current_value: f64, drift: f64, volatility: f64, dt: f64, z: f64) ->
     let diffusion_term = volatility * dt.sqrt() * z;
 
     current_value * (drift_term + diffusion_term).exp()
+}
+
+/// Generates a vector of standard normal random variables
+///
+/// # Arguments
+///
+/// * `num` - The number of random variables to generate
+///
+/// # Returns
+///
+/// A vector of standard normal random variables
+fn generate_random_normal_zs(num: usize) -> Vec<f64> {
+    let mut rng = rng();
+    (0..num).map(|_| StandardNormal.sample(&mut rng)).collect()
 }
 
 /// Simulates a path of geometric Brownian motion
@@ -43,9 +57,7 @@ fn simulate_gbm_path(
     num_steps: usize,
 ) -> Vec<f64> {
     // Pregenerate all random z values
-    let mut rng = rng();
-    let normal = Normal::new(0.0, 1.0).unwrap();
-    let z_values: Vec<f64> = (0..num_steps).map(|_| normal.sample(&mut rng)).collect();
+    let z_values = generate_random_normal_zs(num_steps);
 
     // Iterate through the z values to calculate the path
     let mut path = Vec::with_capacity(num_steps + 1);
@@ -100,8 +112,9 @@ pub fn simulate_gbm_paths_fastest(
         .map(|_| {
             // Pregenerate all random z values
             let mut rng = rng();
-            let normal = Normal::new(0.0, 1.0).unwrap();
-            let z_values: Vec<f64> = (0..num_steps).map(|_| normal.sample(&mut rng)).collect();
+            let z_values: Vec<f64> = (0..num_steps)
+                .map(|_| StandardNormal.sample(&mut rng))
+                .collect();
 
             // Iterate through the z values to calculate the path
             let mut path = Vec::with_capacity(num_steps + 1);
