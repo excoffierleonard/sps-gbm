@@ -95,25 +95,31 @@ pub fn simulate_gbm_paths_fastest(
     num_steps: usize,
     num_paths: usize,
 ) -> Vec<Vec<f64>> {
-    // Pregenerate all random z values
-    let mut rng = rng();
-    let normal = Normal::new(0.0, 1.0).unwrap();
-    let z_values: Vec<f64> = (0..num_steps * num_paths)
-        .map(|_| normal.sample(&mut rng))
-        .collect();
+    (0..num_paths)
+        .into_par_iter()
+        .map(|_| {
+            // Pregenerate all random z values
+            let mut rng = rng();
+            let normal = Normal::new(0.0, 1.0).unwrap();
+            let z_values: Vec<f64> = (0..num_steps).map(|_| normal.sample(&mut rng)).collect();
 
-    // Iterate through the z values to calculate the paths
-    let mut paths = vec![vec![initial_value; num_steps + 1]; num_paths];
-    for path in paths.iter_mut() {
-        let mut current_value = initial_value;
-        for i in 0..num_steps {
-            let z = z_values[i];
-            let next_value = gbm_step(current_value, drift, volatility, dt, z);
-            path[i + 1] = next_value;
-            current_value = next_value;
-        }
-    }
-    paths
+            // Iterate through the z values to calculate the path
+            let mut path = Vec::with_capacity(num_steps + 1);
+            path.push(initial_value);
+            let mut current_value = initial_value;
+            for &z in &z_values {
+                let next_value = {
+                    let drift_term = (drift - 0.5 * volatility * volatility) * dt;
+                    let diffusion_term = volatility * dt.sqrt() * z;
+
+                    current_value * (drift_term + diffusion_term).exp()
+                };
+                path.push(next_value);
+                current_value = next_value;
+            }
+            path
+        })
+        .collect()
 }
 
 #[cfg(test)]
