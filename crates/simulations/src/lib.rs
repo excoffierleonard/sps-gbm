@@ -26,14 +26,16 @@ fn gbm_step(current_value: f64, drift: f64, volatility: f64, dt: f64, z: f64) ->
 ///
 /// # Arguments
 ///
-/// * `num` - The number of random variables to generate
+/// * `num_steps` - The number of random variables to generate
 ///
 /// # Returns
 ///
 /// A vector of standard normal random variables
-fn generate_random_normal_zs(num: usize) -> Vec<f64> {
+fn generate_random_normal_zs(num_steps: usize) -> Vec<f64> {
     let mut rng = rng();
-    (0..num).map(|_| StandardNormal.sample(&mut rng)).collect()
+    (0..num_steps)
+        .map(|_| StandardNormal.sample(&mut rng))
+        .collect()
 }
 
 /// Simulates a path of geometric Brownian motion
