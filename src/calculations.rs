@@ -42,26 +42,22 @@ pub fn simulate_gbm_path(
     dt: f64,
     num_steps: usize,
 ) -> Vec<f64> {
+    // Pregenerate all random z values
     let mut rng = rand::rng();
     let normal = Normal::new(0.0, 1.0).unwrap();
-
-    // Pregenerate all random z values
     let z_values: Vec<f64> = (0..num_steps)
         .map(|_| RandDistribution::sample(&normal, &mut rng))
         .collect();
 
+    // Iterate through the z values to calculate the path
     let mut path = Vec::with_capacity(num_steps + 1);
     path.push(initial_value);
-
-    // Track current value to avoid repeated last() and unwrap() calls
     let mut current_value = initial_value;
-
     for &z in &z_values {
         let next_value = gbm_step(current_value, drift, volatility, dt, z);
         path.push(next_value);
         current_value = next_value;
     }
-
     path
 }
 
