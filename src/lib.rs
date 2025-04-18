@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 pub use calculations::{
     SummaryStats, calculate_summary_stats, estimate_gbm_parameters, gbm_step,
-    generate_gbm_paths_from_prices, simulate_gbm_path,
+    generate_gbm_paths_from_prices, simulate_gbm_path, simulate_gbm_paths,
 };
 pub use data::{cache_prices, fetch_historical_prices_alphavantage, get_cached_prices};
 pub use plot::plot_results;

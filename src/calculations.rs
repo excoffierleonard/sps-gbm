@@ -96,6 +96,20 @@ pub fn estimate_gbm_parameters(prices: &[f64], dt: f64) -> GBMParameters {
     GBMParameters { drift, volatility }
 }
 
+pub fn simulate_gbm_paths(
+    initial_value: f64,
+    drift: f64,
+    volatility: f64,
+    dt: f64,
+    num_steps: usize,
+    num_paths: usize,
+) -> Vec<Vec<f64>> {
+    (0..num_paths)
+        .into_par_iter()
+        .map(|_| simulate_gbm_path(initial_value, drift, volatility, dt, num_steps))
+        .collect()
+}
+
 /// Generate GBM paths from historical prices
 ///
 /// # Arguments
@@ -118,18 +132,14 @@ pub fn generate_gbm_paths_from_prices(
     let gbm_parameters = estimate_gbm_parameters(prices, dt);
     let initial_value = prices[0];
 
-    (0..num_paths)
-        .into_par_iter()
-        .map(|_| {
-            simulate_gbm_path(
-                initial_value,
-                gbm_parameters.drift,
-                gbm_parameters.volatility,
-                dt,
-                num_steps,
-            )
-        })
-        .collect()
+    simulate_gbm_paths(
+        initial_value,
+        gbm_parameters.drift,
+        gbm_parameters.volatility,
+        dt,
+        num_steps,
+        num_paths,
+    )
 }
 
 #[derive(Debug)]
@@ -279,6 +289,27 @@ mod tests {
 
         for i in 1..path.len() {
             assert!(path[i] > 0.0);
+        }
+    }
+
+    #[test]
+    fn simulate_gbm_paths_correct() {
+        let initial_value = 100.0;
+        let drift = 0.05;
+        let volatility = 0.2;
+        let dt = 1.0;
+        let num_steps = 10;
+        let num_paths = 5;
+
+        let paths = simulate_gbm_paths(initial_value, drift, volatility, dt, num_steps, num_paths);
+
+        assert_eq!(paths.len(), num_paths);
+        for path in paths.iter() {
+            assert_eq!(path.len(), num_steps + 1);
+            assert_eq!(path[0], initial_value);
+            for i in 1..path.len() {
+                assert!(path[i] > 0.0);
+            }
         }
     }
 
