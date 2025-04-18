@@ -53,9 +53,13 @@ pub fn simulate_gbm_path(
     let mut path = Vec::with_capacity(num_steps + 1);
     path.push(initial_value);
 
-    for &z in z_values.iter() {
-        let next_value = gbm_step(path.last().copied().unwrap(), drift, volatility, dt, z);
+    // Track current value to avoid repeated last() and unwrap() calls
+    let mut current_value = initial_value;
+
+    for &z in &z_values {
+        let next_value = gbm_step(current_value, drift, volatility, dt, z);
         path.push(next_value);
+        current_value = next_value;
     }
 
     path
