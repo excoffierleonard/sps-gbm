@@ -15,7 +15,7 @@ use rayon::prelude::*;
 /// # Returns
 ///
 /// The next value S(t+Δt)
-pub fn gbm_step(current_value: f64, drift: f64, volatility: f64, dt: f64, z: f64) -> f64 {
+fn gbm_step(current_value: f64, drift: f64, volatility: f64, dt: f64, z: f64) -> f64 {
     let drift_term = (drift - 0.5 * volatility * volatility) * dt;
     let diffusion_term = volatility * dt.sqrt() * z;
 
@@ -35,7 +35,7 @@ pub fn gbm_step(current_value: f64, drift: f64, volatility: f64, dt: f64, z: f64
 /// # Returns
 ///
 /// A vector containing the simulated path of values
-pub fn simulate_gbm_path(
+fn simulate_gbm_path(
     initial_value: f64,
     drift: f64,
     volatility: f64,
