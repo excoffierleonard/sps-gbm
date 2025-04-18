@@ -1,6 +1,4 @@
-mod simulations;
-
-pub use simulations::{gbm_step, simulate_gbm_path, simulate_gbm_paths};
+use simulations::simulate_gbm_paths;
 
 use statrs::statistics::{Data, Distribution as StatsDistribution, Median, OrderStatistics};
 

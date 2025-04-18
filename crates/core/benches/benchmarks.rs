@@ -1,50 +1,9 @@
-use sps_gbm::{
-    calculate_summary_stats, estimate_gbm_parameters, gbm_step, generate_gbm_paths_from_prices,
-    plot_results, simulate_gbm_path, simulate_gbm_paths,
+use core::{
+    calculate_summary_stats, estimate_gbm_parameters, generate_gbm_paths_from_prices, plot_results,
 };
 
 use chrono::NaiveDate;
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
-
-fn simulations(c: &mut Criterion) {
-    let mut g = c.benchmark_group("Simulations");
-    g.throughput(Throughput::Elements(1));
-
-    g.bench_function("1 Step", |b| {
-        b.iter(|| {
-            gbm_step(
-                black_box(100.0),
-                black_box(0.05),
-                black_box(0.2),
-                black_box(1.0),
-                black_box(0.5),
-            )
-        })
-    });
-    g.bench_function("1 Path | 1,000 Steps", |b| {
-        b.iter(|| {
-            simulate_gbm_path(
-                black_box(100.0),
-                black_box(0.05),
-                black_box(0.2),
-                black_box(1.0),
-                black_box(1_000),
-            )
-        })
-    });
-    g.bench_function("1 Simulation | 1,000 Paths | 1,000 Steps", |b| {
-        b.iter(|| {
-            simulate_gbm_paths(
-                black_box(100.0),
-                black_box(0.05),
-                black_box(0.2),
-                black_box(1.0),
-                black_box(1_000),
-                black_box(1_000),
-            )
-        })
-    });
-}
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("GBM");
@@ -89,5 +48,5 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, simulations, criterion_benchmark);
+criterion_group!(benches, criterion_benchmark);
 criterion_main!(benches);
