@@ -45,9 +45,7 @@ pub fn simulate_gbm_path(
     // Pregenerate all random z values
     let mut rng = rand::rng();
     let normal = Normal::new(0.0, 1.0).unwrap();
-    let z_values: Vec<f64> = (0..num_steps)
-        .map(|_| RandDistribution::sample(&normal, &mut rng))
-        .collect();
+    let z_values: Vec<f64> = (0..num_steps).map(|_| normal.sample(&mut rng)).collect();
 
     // Iterate through the z values to calculate the path
     let mut path = Vec::with_capacity(num_steps + 1);
