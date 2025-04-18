@@ -87,6 +87,35 @@ pub fn simulate_gbm_paths(
         .collect()
 }
 
+pub fn simulate_gbm_paths_fastest(
+    initial_value: f64,
+    drift: f64,
+    volatility: f64,
+    dt: f64,
+    num_steps: usize,
+    num_paths: usize,
+) -> Vec<Vec<f64>> {
+    // Pregenerate all random z values
+    let mut rng = rng();
+    let normal = Normal::new(0.0, 1.0).unwrap();
+    let z_values: Vec<f64> = (0..num_steps * num_paths)
+        .map(|_| normal.sample(&mut rng))
+        .collect();
+
+    // Iterate through the z values to calculate the paths
+    let mut paths = vec![vec![initial_value; num_steps + 1]; num_paths];
+    for path in paths.iter_mut() {
+        let mut current_value = initial_value;
+        for i in 0..num_steps {
+            let z = z_values[i];
+            let next_value = gbm_step(current_value, drift, volatility, dt, z);
+            path[i + 1] = next_value;
+            current_value = next_value;
+        }
+    }
+    paths
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -153,8 +182,10 @@ mod tests {
         }
     }
 
-    #[test]
-    fn simulate_gbm_paths_correct() {
+    fn check_paths<F>(simulate_fn: F)
+    where
+        F: Fn(f64, f64, f64, f64, usize, usize) -> Vec<Vec<f64>>,
+    {
         let initial_value = 100.0;
         let drift = 0.05;
         let volatility = 0.2;
@@ -162,15 +193,21 @@ mod tests {
         let num_steps = 10;
         let num_paths = 5;
 
-        let paths = simulate_gbm_paths(initial_value, drift, volatility, dt, num_steps, num_paths);
+        let paths = simulate_fn(initial_value, drift, volatility, dt, num_steps, num_paths);
 
         assert_eq!(paths.len(), num_paths);
-        for path in paths.iter() {
+        for path in paths {
             assert_eq!(path.len(), num_steps + 1);
             assert_eq!(path[0], initial_value);
-            for i in 1..path.len() {
-                assert!(path[i] > 0.0);
+            for value in path.iter().skip(1) {
+                assert!(*value > 0.0);
             }
         }
+    }
+
+    #[test]
+    fn simulate_gbm_paths_correct() {
+        check_paths(simulate_gbm_paths);
+        check_paths(simulate_gbm_paths_fastest);
     }
 }
