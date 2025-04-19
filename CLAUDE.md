@@ -13,20 +13,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Run single test: `cargo test -p core test_name`
 - Run ignored test: `cargo test -p core -- --ignored test_name`
 - Benchmark core: `cargo bench -p core`
+- Benchmark simulations: `cargo bench -p simulations`
 - Format all crates: `cargo fmt`
 - Lint all crates: `cargo clippy`
 
 ## Code Style Guidelines
 
-- Use Rust 2021 edition style
+- Use Rust 2024 edition style
 - Use workspace dependencies in Cargo.toml files
 - Structure code with core crate for main functionality and simulations for calculation logic
-- Group imports with std first, then external crates
-- Use doc comments (`///`) for public functions/structs
+- Group imports with std first, then external crates, alphabetically within groups
+- Use doc comments (`///`) for public functions/structs with complete parameter documentation
 - Use descriptive variable names in snake_case
 - Prefer Result/Option for error handling over panics
 - Use rayon for parallelism when processing data
-- In Python code (legacy directory), follow PEP 8 style guidelines
+- Include test cases for public functionality
 - Write robust error handling for network operations
 - Cache API responses when possible to reduce network calls
 - Use strongly typed structs when deserializing external data
