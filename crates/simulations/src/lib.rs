@@ -2,103 +2,110 @@ use rand::rng;
 use rand_distr::{Distribution as RandDistribution, StandardNormal};
 use rayon::prelude::*;
 
-/// Calculates a single step of geometric Brownian motion
-///
-/// # Arguments
-///
-/// * `current_value` - The current value S(t)
-/// * `drift` - The drift parameter μ
-/// * `volatility` - The volatility parameter σ
-/// * `dt` - The time step Δt
-/// * `z` - Standard normal random variable (N(0,1))
-///
-/// # Returns
-///
-/// The next value S(t+Δt)
-fn gbm_step(current_value: f64, drift: f64, volatility: f64, dt: f64, z: f64) -> f64 {
-    let drift_term = (drift - 0.5 * volatility * volatility) * dt;
-    let diffusion_term = volatility * dt.sqrt() * z;
-
-    current_value * (drift_term + diffusion_term).exp()
-}
-
-/// Generates a vector of standard normal random variables
-///
-/// # Arguments
-///
-/// * `num_steps` - The number of random variables to generate
-///
-/// # Returns
-///
-/// A vector of standard normal random variables
-fn generate_random_normal_zs(num_steps: usize) -> Vec<f64> {
-    let mut rng = rng();
-    (0..num_steps)
-        .map(|_| StandardNormal.sample(&mut rng))
-        .collect()
-}
-
-/// Simulates a path of geometric Brownian motion
-///
-/// # Arguments
-///
-/// * `initial_value` - The initial value S(0)
-/// * `drift` - The drift parameter μ
-/// * `volatility` - The volatility parameter σ
-/// * `dt` - The time step Δt
-/// * `num_steps` - The number of steps to simulate
-///
-/// # Returns
-///
-/// A vector containing the simulated path of values
-fn simulate_gbm_path(
+/// A simulator for geometric Brownian motion (GBM)
+pub struct GbmSimulator {
+    /// The initial value S(0)
     initial_value: f64,
+    /// The drift parameter μ
     drift: f64,
+    /// The volatility parameter σ
     volatility: f64,
+    /// The time step Δt
     dt: f64,
-    num_steps: usize,
-) -> Vec<f64> {
-    // Pregenerate all random z values
-    let z_values = generate_random_normal_zs(num_steps);
+}
 
-    // Iterate through the z values to calculate the path
-    let mut path = Vec::with_capacity(num_steps + 1);
-    path.push(initial_value);
-    let mut current_value = initial_value;
-    for &z in &z_values {
-        let next_value = gbm_step(current_value, drift, volatility, dt, z);
-        path.push(next_value);
-        current_value = next_value;
+impl GbmSimulator {
+    /// Creates a new GBM simulator with the given parameters
+    ///
+    /// # Arguments
+    ///
+    /// * `initial_value` - The initial value S(0)
+    /// * `drift` - The drift parameter μ
+    /// * `volatility` - The volatility parameter σ
+    /// * `dt` - The time step Δt
+    pub fn new(initial_value: f64, drift: f64, volatility: f64, dt: f64) -> Self {
+        Self {
+            initial_value,
+            drift,
+            volatility,
+            dt,
+        }
     }
-    path
-}
 
-/// Simulates multiple paths of geometric Brownian motion
-///
-/// # Arguments
-///
-/// * `initial_value` - The initial value S(0)
-/// * `drift` - The drift parameter μ
-/// * `volatility` - The volatility parameter σ
-/// * `dt` - The time step Δt
-/// * `num_steps` - The number of steps to simulate
-/// * `num_paths` - The number of paths to simulate
-///
-/// # Returns
-///
-/// A vector of vectors, where each inner vector represents a simulated path
-pub fn simulate_gbm_paths(
-    initial_value: f64,
-    drift: f64,
-    volatility: f64,
-    dt: f64,
-    num_steps: usize,
-    num_paths: usize,
-) -> Vec<Vec<f64>> {
-    (0..num_paths)
-        .into_par_iter()
-        .map(|_| simulate_gbm_path(initial_value, drift, volatility, dt, num_steps))
-        .collect()
+    /// Calculates a single step of geometric Brownian motion
+    ///
+    /// # Arguments
+    ///
+    /// * `current_value` - The current value S(t)
+    /// * `z` - Standard normal random variable (N(0,1))
+    ///
+    /// # Returns
+    ///
+    /// The next value S(t+Δt)
+    fn gbm_step(&self, current_value: f64, z: f64) -> f64 {
+        let drift_term = (self.drift - 0.5 * self.volatility * self.volatility) * self.dt;
+        let diffusion_term = self.volatility * self.dt.sqrt() * z;
+
+        current_value * (drift_term + diffusion_term).exp()
+    }
+
+    /// Generates a vector of standard normal random variables
+    ///
+    /// # Arguments
+    ///
+    /// * `num_steps` - The number of random variables to generate
+    ///
+    /// # Returns
+    ///
+    /// A vector of standard normal random variables
+    fn generate_random_normal_zs(num_steps: usize) -> Vec<f64> {
+        let mut rng = rng();
+        (0..num_steps)
+            .map(|_| StandardNormal.sample(&mut rng))
+            .collect()
+    }
+
+    /// Simulates a path of geometric Brownian motion
+    ///
+    /// # Arguments
+    ///
+    /// * `num_steps` - The number of steps to simulate
+    ///
+    /// # Returns
+    ///
+    /// A vector containing the simulated path of values
+    fn simulate_path(&self, num_steps: usize) -> Vec<f64> {
+        // Pregenerate all random z values
+        let z_values = Self::generate_random_normal_zs(num_steps);
+
+        // Iterate through the z values to calculate the path
+        let mut path = Vec::with_capacity(num_steps + 1);
+        path.push(self.initial_value);
+        let mut current_value = self.initial_value;
+        for &z in &z_values {
+            let next_value = self.gbm_step(current_value, z);
+            path.push(next_value);
+            current_value = next_value;
+        }
+        path
+    }
+
+    /// Simulates multiple paths of geometric Brownian motion
+    ///
+    /// # Arguments
+    ///
+    /// * `num_steps` - The number of steps to simulate
+    /// * `num_paths` - The number of paths to simulate
+    ///
+    /// # Returns
+    ///
+    /// A vector of vectors, where each inner vector represents a simulated path
+    pub fn simulate_paths(&self, num_steps: usize, num_paths: usize) -> Vec<Vec<f64>> {
+        (0..num_paths)
+            .into_par_iter()
+            .map(|_| self.simulate_path(num_steps))
+            .collect()
+    }
 }
 
 #[cfg(test)]
@@ -144,7 +151,8 @@ mod tests {
         ];
 
         for tc in test_cases.iter() {
-            let next_value = gbm_step(tc.current_value, tc.drift, tc.volatility, tc.dt, tc.z);
+            let simulator = GbmSimulator::new(tc.current_value, tc.drift, tc.volatility, tc.dt);
+            let next_value = simulator.gbm_step(tc.current_value, tc.z);
             assert_eq!(next_value, tc.expected);
         }
     }
@@ -152,7 +160,7 @@ mod tests {
     #[test]
     fn generate_random_normal_zs_correct() {
         let num_steps = 1000;
-        let zs = generate_random_normal_zs(num_steps);
+        let zs = GbmSimulator::generate_random_normal_zs(num_steps);
 
         assert_eq!(zs.len(), num_steps);
         for &z in &zs {
@@ -161,14 +169,15 @@ mod tests {
     }
 
     #[test]
-    fn simulate_gbm_path_correct() {
+    fn simulate_path_correct() {
         let initial_value = 100.0;
         let drift = 0.05;
         let volatility = 0.2;
         let dt = 1.0;
         let num_steps = 10;
 
-        let path = simulate_gbm_path(initial_value, drift, volatility, dt, num_steps);
+        let simulator = GbmSimulator::new(initial_value, drift, volatility, dt);
+        let path = simulator.simulate_path(num_steps);
 
         assert_eq!(path.len(), num_steps + 1);
         assert_eq!(path[0], initial_value);
@@ -179,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn simulate_gbm_paths_correct() {
+    fn simulate_paths_correct() {
         let initial_value = 100.0;
         let drift = 0.05;
         let volatility = 0.2;
@@ -187,7 +196,8 @@ mod tests {
         let num_steps = 10;
         let num_paths = 5;
 
-        let paths = simulate_gbm_paths(initial_value, drift, volatility, dt, num_steps, num_paths);
+        let simulator = GbmSimulator::new(initial_value, drift, volatility, dt);
+        let paths = simulator.simulate_paths(num_steps, num_paths);
 
         assert_eq!(paths.len(), num_paths);
         for path in paths {

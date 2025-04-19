@@ -1,4 +1,4 @@
-use simulations::simulate_gbm_paths;
+use simulations::GbmSimulator;
 
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 
@@ -8,14 +8,13 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     g.bench_function("1 Simulation | 1,000 Paths | 1,000 Steps", |b| {
         b.iter(|| {
-            simulate_gbm_paths(
+            GbmSimulator::new(
                 black_box(100.0),
                 black_box(0.05),
                 black_box(0.2),
                 black_box(1.0),
-                black_box(1_000),
-                black_box(1_000),
             )
+            .simulate_paths(black_box(1000), black_box(1000))
         })
     });
 }

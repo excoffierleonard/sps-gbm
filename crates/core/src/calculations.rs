@@ -1,4 +1,4 @@
-use simulations::simulate_gbm_paths;
+use simulations::GbmSimulator;
 
 use statrs::statistics::{Data, Distribution as StatsDistribution, Median, OrderStatistics};
 
@@ -59,14 +59,13 @@ pub fn generate_gbm_paths_from_prices(
     let gbm_parameters = estimate_gbm_parameters(prices, dt);
     let initial_value = prices[0];
 
-    simulate_gbm_paths(
+    GbmSimulator::new(
         initial_value,
         gbm_parameters.drift,
         gbm_parameters.volatility,
         dt,
-        num_steps,
-        num_paths,
     )
+    .simulate_paths(num_steps, num_paths)
 }
 
 #[derive(Debug)]
