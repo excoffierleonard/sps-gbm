@@ -101,42 +101,6 @@ pub fn simulate_gbm_paths(
         .collect()
 }
 
-pub fn simulate_gbm_paths_fastest(
-    initial_value: f64,
-    drift: f64,
-    volatility: f64,
-    dt: f64,
-    num_steps: usize,
-    num_paths: usize,
-) -> Vec<Vec<f64>> {
-    (0..num_paths)
-        .into_par_iter()
-        .map(|_| {
-            // Pregenerate all random z values
-            let mut rng = rng();
-            let z_values: Vec<f64> = (0..num_steps)
-                .map(|_| StandardNormal.sample(&mut rng))
-                .collect();
-
-            // Iterate through the z values to calculate the path
-            let mut path = Vec::with_capacity(num_steps + 1);
-            path.push(initial_value);
-            let mut current_value = initial_value;
-            for &z in &z_values {
-                let next_value = {
-                    let drift_term = (drift - 0.5 * volatility * volatility) * dt;
-                    let diffusion_term = volatility * dt.sqrt() * z;
-
-                    current_value * (drift_term + diffusion_term).exp()
-                };
-                path.push(next_value);
-                current_value = next_value;
-            }
-            path
-        })
-        .collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -186,6 +150,17 @@ mod tests {
     }
 
     #[test]
+    fn generate_random_normal_zs_correct() {
+        let num_steps = 1000;
+        let zs = generate_random_normal_zs(num_steps);
+
+        assert_eq!(zs.len(), num_steps);
+        for &z in &zs {
+            assert!(z.is_finite());
+        }
+    }
+
+    #[test]
     fn simulate_gbm_path_correct() {
         let initial_value = 100.0;
         let drift = 0.05;
@@ -203,10 +178,8 @@ mod tests {
         }
     }
 
-    fn check_paths<F>(simulate_fn: F)
-    where
-        F: Fn(f64, f64, f64, f64, usize, usize) -> Vec<Vec<f64>>,
-    {
+    #[test]
+    fn simulate_gbm_paths_correct() {
         let initial_value = 100.0;
         let drift = 0.05;
         let volatility = 0.2;
@@ -214,7 +187,7 @@ mod tests {
         let num_steps = 10;
         let num_paths = 5;
 
-        let paths = simulate_fn(initial_value, drift, volatility, dt, num_steps, num_paths);
+        let paths = simulate_gbm_paths(initial_value, drift, volatility, dt, num_steps, num_paths);
 
         assert_eq!(paths.len(), num_paths);
         for path in paths {
@@ -224,11 +197,5 @@ mod tests {
                 assert!(*value > 0.0);
             }
         }
-    }
-
-    #[test]
-    fn simulate_gbm_paths_correct() {
-        check_paths(simulate_gbm_paths);
-        check_paths(simulate_gbm_paths_fastest);
     }
 }
