@@ -66,6 +66,7 @@ pub fn generate_gbm_paths_from_prices(
         dt,
     )
     .simulate_paths(num_steps, num_paths)
+    .into_vec_of_vec()
 }
 
 #[derive(Debug)]

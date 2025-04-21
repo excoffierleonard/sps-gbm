@@ -1,6 +1,65 @@
+use std::ops::Deref;
+
 use rand::rng;
 use rand_distr::{Distribution as RandDistribution, StandardNormal};
 use rayon::prelude::*;
+
+/// A simulated path of values
+pub struct SimulatedPath {
+    /// The simulated path of values
+    path: Vec<f64>,
+}
+
+impl Deref for SimulatedPath {
+    type Target = Vec<f64>;
+    fn deref(&self) -> &Self::Target {
+        &self.path
+    }
+}
+
+impl From<Vec<f64>> for SimulatedPath {
+    fn from(path: Vec<f64>) -> Self {
+        Self { path }
+    }
+}
+
+impl From<SimulatedPath> for Vec<f64> {
+    fn from(sim_path: SimulatedPath) -> Self {
+        sim_path.path
+    }
+}
+
+/// A collection of simulated paths
+pub struct SimulatedPaths {
+    /// The simulated paths of values
+    paths: Vec<SimulatedPath>,
+}
+
+impl Deref for SimulatedPaths {
+    type Target = Vec<SimulatedPath>;
+    fn deref(&self) -> &Self::Target {
+        &self.paths
+    }
+}
+
+impl From<Vec<SimulatedPath>> for SimulatedPaths {
+    fn from(paths: Vec<SimulatedPath>) -> Self {
+        Self { paths }
+    }
+}
+
+impl From<SimulatedPaths> for Vec<SimulatedPath> {
+    fn from(sim_paths: SimulatedPaths) -> Self {
+        sim_paths.paths
+    }
+}
+
+impl SimulatedPaths {
+    /// Converts the simulated paths into a vector of vectors
+    pub fn into_vec_of_vec(self) -> Vec<Vec<f64>> {
+        self.paths.into_iter().map(Into::into).collect()
+    }
+}
 
 /// A simulator for geometric Brownian motion (GBM)
 pub struct GbmSimulator {
@@ -99,12 +158,16 @@ impl GbmSimulator {
     ///
     /// # Returns
     ///
-    /// A vector of vectors, where each inner vector represents a simulated path
-    pub fn simulate_paths(&self, num_steps: usize, num_paths: usize) -> Vec<Vec<f64>> {
-        (0..num_paths)
+    /// A collection of simulated paths
+    pub fn simulate_paths(&self, num_steps: usize, num_paths: usize) -> SimulatedPaths {
+        let paths: Vec<SimulatedPath> = (0..num_paths)
             .into_par_iter()
-            .map(|_| self.simulate_path(num_steps))
-            .collect()
+            .map(|_| {
+                let simulated_path = self.simulate_path(num_steps);
+                SimulatedPath::from(simulated_path)
+            })
+            .collect();
+        SimulatedPaths::from(paths)
     }
 }
 
@@ -200,7 +263,7 @@ mod tests {
         let paths = simulator.simulate_paths(num_steps, num_paths);
 
         assert_eq!(paths.len(), num_paths);
-        for path in paths {
+        for path in paths.iter() {
             assert_eq!(path.len(), num_steps + 1);
             assert_eq!(path[0], initial_value);
             for value in path.iter().skip(1) {
