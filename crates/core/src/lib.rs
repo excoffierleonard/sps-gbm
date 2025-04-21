@@ -4,9 +4,7 @@ mod plot;
 
 use std::path::PathBuf;
 
-pub use calculations::{
-    SummaryStats, calculate_summary_stats, estimate_gbm_parameters, generate_gbm_paths_from_prices,
-};
+pub use calculations::{GBMParameters, SummaryStats, generate_gbm_paths_from_prices};
 pub use data::{cache_prices, fetch_historical_prices_alphavantage, get_cached_prices};
 pub use plot::plot_results;
 
@@ -69,7 +67,7 @@ pub fn generate_simulation(
 
     SimulationResult {
         plot_path: plot_results(symbol, &dated_paths),
-        summary_stats: calculate_summary_stats(
+        summary_stats: SummaryStats::from_prices(
             &paths
                 .iter()
                 .map(|path| path.last().copied().unwrap())

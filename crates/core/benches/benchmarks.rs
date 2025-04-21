@@ -1,6 +1,4 @@
-use core::{
-    calculate_summary_stats, estimate_gbm_parameters, generate_gbm_paths_from_prices, plot_results,
-};
+use core::{GBMParameters, SummaryStats, generate_gbm_paths_from_prices, plot_results};
 
 use chrono::NaiveDate;
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
@@ -10,7 +8,9 @@ fn criterion_benchmark(c: &mut Criterion) {
     g.throughput(Throughput::Elements(1));
 
     g.bench_function("Calculate Parameters", |b| {
-        b.iter(|| estimate_gbm_parameters(black_box(&[100.0, 105.0, 110.0, 115.0]), black_box(1.0)))
+        b.iter(|| {
+            GBMParameters::from_prices(black_box(&[100.0, 105.0, 110.0, 115.0]), black_box(1.0))
+        })
     });
     g.bench_function("Generate 10,000 Paths from Prices", |b| {
         b.iter(|| {
@@ -44,7 +44,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
     g.bench_function("Calculate Summary Stats", |b| {
-        b.iter(|| calculate_summary_stats(black_box(&vec![10.0, 20.0, 30.0, 40.0, 50.0])))
+        b.iter(|| SummaryStats::from_prices(black_box(&vec![10.0, 20.0, 30.0, 40.0, 50.0])))
     });
 }
 
