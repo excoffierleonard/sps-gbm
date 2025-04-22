@@ -1,6 +1,6 @@
 use std::env;
 
-use sps_gbm::generate_simulation;
+use core::generate_simulation;
 
 use clap::Parser;
 

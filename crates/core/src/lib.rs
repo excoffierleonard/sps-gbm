@@ -4,12 +4,9 @@ mod plot;
 
 use std::path::PathBuf;
 
-pub use calculations::{
-    SummaryStats, calculate_summary_stats, estimate_gbm_parameters, gbm_step,
-    generate_gbm_paths_from_prices, simulate_gbm_path,
-};
-pub use data::{cache_prices, fetch_historical_prices_alphavantage, get_cached_prices};
-pub use plot::plot_results;
+pub use calculations::{GBMParameters, Prices, SummaryStats};
+pub use data::{AlphaVantage, DateRange, PriceProvider};
+pub use plot::SimulatedDatedPaths;
 
 use chrono::NaiveDate;
 
@@ -41,11 +38,11 @@ pub fn generate_simulation(
     num_paths: usize,
 ) -> SimulationResult {
     // Fetch historical prices
-    let historical_prices =
-        fetch_historical_prices_alphavantage(symbol, api_key, start_date, end_date);
+    let historical_prices = AlphaVantage::new(api_key.to_string())
+        .fetch_prices(symbol, &DateRange::new(start_date, end_date));
 
     // Generate simulated paths
-    let paths = generate_gbm_paths_from_prices(&historical_prices, num_steps, num_paths);
+    let paths = Prices::from_slice(&historical_prices).simulate_paths(num_steps, num_paths);
 
     // Create future dates for simulation
     let last_historical_date = NaiveDate::parse_from_str(end_date, "%Y-%m-%d").unwrap();
@@ -69,8 +66,8 @@ pub fn generate_simulation(
         .collect();
 
     SimulationResult {
-        plot_path: plot_results(symbol, &dated_paths),
-        summary_stats: calculate_summary_stats(
+        plot_path: SimulatedDatedPaths::from_paths(dated_paths).plot(symbol),
+        summary_stats: SummaryStats::from_prices(
             &paths
                 .iter()
                 .map(|path| path.last().copied().unwrap())

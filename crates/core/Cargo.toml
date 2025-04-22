@@ -1,0 +1,27 @@
+[package]
+name = "core"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+simulations = { workspace = true }
+chrono = { workspace = true }
+plotters = { workspace = true }
+tempfile = { workspace = true }
+statrs = { workspace = true }
+serde = { workspace = true }
+reqwest = { workspace = true }
+serde_json = { workspace = true }
+# CLI
+clap = { workspace = true }
+# and Test
+dotenvy = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+assert_cmd = { workspace = true }
+predicates = { workspace = true }
+
+[[bench]]
+name = "benchmarks"
+harness = false

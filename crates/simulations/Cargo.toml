@@ -1,0 +1,16 @@
+[package]
+name = "simulations"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+rand = { workspace = true }
+rand_distr = { workspace = true }
+rayon = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+
+[[bench]]
+name = "benchmarks"
+harness = false
