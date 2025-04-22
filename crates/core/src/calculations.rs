@@ -47,35 +47,43 @@ impl GBMParameters {
     }
 }
 
-/// Generate GBM paths from historical prices
-///
-/// # Arguments
-///
-/// * `prices` - Vector of historical prices
-/// * `num_steps` - The number of steps to simulate
-/// * `num_paths` - The number of paths to simulate
-///
-/// # Returns
-///
-/// A vector of vectors, where each inner vector represents a simulated path
-pub fn generate_gbm_paths_from_prices(
-    prices: &[f64],
-    num_steps: usize,
-    num_paths: usize,
-) -> Vec<Vec<f64>> {
-    // Hardcoded dt value since here the time step between the historical prices and the simulated prices are the same
-    let dt = 1.0;
+pub struct Prices {
+    prices: Vec<f64>,
+}
 
-    let gbm_parameters = GBMParameters::from_prices(prices, dt);
+impl Prices {
+    pub fn from_slice(prices: &[f64]) -> Self {
+        Self {
+            prices: prices.to_vec(),
+        }
+    }
 
-    GbmSimulator::new(
-        gbm_parameters.initial_value,
-        gbm_parameters.drift,
-        gbm_parameters.volatility,
-        gbm_parameters.dt,
-    )
-    .simulate_paths(num_steps, num_paths)
-    .into_vec_of_vec()
+    /// Generate GBM paths from historical prices
+    ///
+    /// # Arguments
+    ///
+    /// * `prices` - Vector of historical prices
+    /// * `num_steps` - The number of steps to simulate
+    /// * `num_paths` - The number of paths to simulate
+    ///
+    /// # Returns
+    ///
+    /// A vector of vectors, where each inner vector represents a simulated path
+    pub fn simulate_paths(&self, num_steps: usize, num_paths: usize) -> Vec<Vec<f64>> {
+        // Hardcoded dt value since here the time step between the historical prices and the simulated prices are the same
+        let dt = 1.0;
+
+        let gbm_parameters = GBMParameters::from_prices(&self.prices, dt);
+
+        GbmSimulator::new(
+            gbm_parameters.initial_value,
+            gbm_parameters.drift,
+            gbm_parameters.volatility,
+            gbm_parameters.dt,
+        )
+        .simulate_paths(num_steps, num_paths)
+        .into_vec_of_vec()
+    }
 }
 
 #[derive(Debug)]
@@ -244,7 +252,7 @@ mod tests {
         let num_steps = 10;
         let num_paths = 5;
 
-        let paths = generate_gbm_paths_from_prices(&prices, num_steps, num_paths);
+        let paths = Prices::from_slice(&prices).simulate_paths(num_steps, num_paths);
 
         assert_eq!(paths.len(), num_paths);
         for path in paths.iter() {
