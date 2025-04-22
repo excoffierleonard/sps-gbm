@@ -1,4 +1,4 @@
-use core::{GBMParameters, SummaryStats, generate_gbm_paths_from_prices, plot_results};
+use core::{GBMParameters, SimulatedDatedPaths, SummaryStats, generate_gbm_paths_from_prices};
 
 use chrono::NaiveDate;
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
@@ -24,23 +24,21 @@ fn criterion_benchmark(c: &mut Criterion) {
     // No benchmark for fetch_historical_prices as it requires network access and api key, might test the caching fetching later
     g.bench_function("Plot Results", |b| {
         b.iter(|| {
-            plot_results(
-                black_box("AAPL"),
-                black_box(&vec![
-                    vec![
-                        (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
-                        (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 105.0),
-                        (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 108.0),
-                        (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 110.0),
-                    ],
-                    vec![
-                        (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
-                        (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 95.0),
-                        (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 98.0),
-                        (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 102.0),
-                    ],
-                ]),
-            )
+            SimulatedDatedPaths::from_paths(vec![
+                vec![
+                    (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
+                    (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 105.0),
+                    (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 108.0),
+                    (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 110.0),
+                ],
+                vec![
+                    (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
+                    (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 95.0),
+                    (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 98.0),
+                    (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 102.0),
+                ],
+            ])
+            .plot("AAPL")
         })
     });
     g.bench_function("Calculate Summary Stats", |b| {

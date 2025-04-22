@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 pub use calculations::{GBMParameters, SummaryStats, generate_gbm_paths_from_prices};
 pub use data::{AlphaVantage, DateRange, PriceProvider};
-pub use plot::plot_results;
+pub use plot::SimulatedDatedPaths;
 
 use chrono::NaiveDate;
 
@@ -66,7 +66,7 @@ pub fn generate_simulation(
         .collect();
 
     SimulationResult {
-        plot_path: plot_results(symbol, &dated_paths),
+        plot_path: SimulatedDatedPaths::from_paths(dated_paths).plot(symbol),
         summary_stats: SummaryStats::from_prices(
             &paths
                 .iter()
