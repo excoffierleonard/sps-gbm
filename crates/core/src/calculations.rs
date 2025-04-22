@@ -43,12 +43,7 @@ impl GBMParameters {
         // Add the volatility adjustment to get the correct drift
         let drift = mean_log_return / dt + 0.5 * volatility.powi(2);
 
-        GBMParameters {
-            initial_value,
-            drift,
-            volatility,
-            dt,
-        }
+        GBMParameters::new(initial_value, drift, volatility, dt)
     }
 }
 

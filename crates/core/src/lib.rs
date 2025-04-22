@@ -5,7 +5,7 @@ mod plot;
 use std::path::PathBuf;
 
 pub use calculations::{GBMParameters, SummaryStats, generate_gbm_paths_from_prices};
-pub use data::{cache_prices, fetch_historical_prices_alphavantage, get_cached_prices};
+pub use data::{AlphaVantage, DateRange, PriceProvider};
 pub use plot::plot_results;
 
 use chrono::NaiveDate;
@@ -38,8 +38,8 @@ pub fn generate_simulation(
     num_paths: usize,
 ) -> SimulationResult {
     // Fetch historical prices
-    let historical_prices =
-        fetch_historical_prices_alphavantage(symbol, api_key, start_date, end_date);
+    let historical_prices = AlphaVantage::new(api_key.to_string())
+        .fetch_prices(symbol, &DateRange::new(start_date, end_date));
 
     // Generate simulated paths
     let paths = generate_gbm_paths_from_prices(&historical_prices, num_steps, num_paths);
