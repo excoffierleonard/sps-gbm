@@ -1,7 +1,8 @@
-use core::{GBMParameters, Prices, SimulatedDatedPaths, SummaryStats};
+use core::{GBMParameters, Prices, SimulatedDatedPaths, SummaryStats, generate_simulation};
 
 use chrono::NaiveDate;
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
+use dotenvy::dotenv;
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("GBM");
@@ -44,5 +45,27 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, criterion_benchmark);
+// This benchmark requires a valid API key and network access
+fn main_benchmark(c: &mut Criterion) {
+    let mut g = c.benchmark_group("GBM");
+    g.throughput(Throughput::Elements(1));
+
+    dotenv().ok();
+    let alphavantage_api_key = std::env::var("ALPHAVANTAGE_API_KEY").unwrap();
+
+    g.bench_function("End-to-End function", |b| {
+        b.iter(|| {
+            generate_simulation(
+                black_box("AAPL"),
+                black_box(&alphavantage_api_key),
+                black_box("2025-01-01"),
+                black_box("2025-04-01"),
+                black_box(1_000),
+                black_box(1_000),
+            )
+        })
+    });
+}
+
+criterion_group!(benches, criterion_benchmark, main_benchmark);
 criterion_main!(benches);
