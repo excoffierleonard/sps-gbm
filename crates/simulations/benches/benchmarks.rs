@@ -3,19 +3,21 @@ use simulations::GbmSimulator;
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 
 fn criterion_benchmark(c: &mut Criterion) {
-    let mut g = c.benchmark_group("Simulations");
+    let mut g = c.benchmark_group("1 Simulation");
     g.throughput(Throughput::Elements(1));
 
-    g.bench_function("1 Simulation | 1,000 Paths | 1,000 Steps", |b| {
-        b.iter(|| {
-            GbmSimulator::new(
-                black_box(100.0),
-                black_box(0.05),
-                black_box(0.2),
-                black_box(1.0),
-            )
-            .simulate_paths(black_box(1000), black_box(1000))
-        })
+    let params = GbmSimulator::new(100.0, 0.05, 0.2, 1.0);
+
+    g.bench_function("1,000 Steps | 1 Path ", |b| {
+        b.iter(|| params.simulate_paths(black_box(1_000), black_box(1)))
+    });
+
+    g.bench_function("1 Step | 1,000 Paths ", |b| {
+        b.iter(|| params.simulate_paths(black_box(1), black_box(1_000)))
+    });
+
+    g.bench_function("1,000 Steps | 1,000 Paths ", |b| {
+        b.iter(|| params.simulate_paths(black_box(1_000), black_box(1_000)))
     });
 }
 
