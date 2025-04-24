@@ -13,13 +13,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     // Generate 1000 simulated paths, each with 1000 steps using a simple random generator.
     let mut rng = rng();
     let paths: Vec<Vec<f64>> = (0..1000)
-        .map(|_| {
-            let mut path = Vec::with_capacity(1000);
-            for _ in 0..1000 {
-                path.push(rng.random_range(90.0..110.0));
-            }
-            path
-        })
+        .map(|_| (0..1000).map(|_| rng.random_range(90.0..110.0)).collect())
         .collect();
 
     // No benchmark for fetch_historical_prices as it requires network access and api key, might test the caching fetching later
