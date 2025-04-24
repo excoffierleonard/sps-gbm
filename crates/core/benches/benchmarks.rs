@@ -1,42 +1,22 @@
-use core::{GBMParameters, Prices, SimulatedDatedPaths, SummaryStats, generate_simulation};
-
-use chrono::NaiveDate;
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 use dotenvy::dotenv;
+
+use core::{SimulatedDatedPaths, Simulation, SummaryStats};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("GBM");
     g.throughput(Throughput::Elements(1));
 
-    g.bench_function("Calculate Parameters", |b| {
-        b.iter(|| {
-            GBMParameters::from_prices(black_box(&[100.0, 105.0, 110.0, 115.0]), black_box(1.0))
-        })
-    });
-    g.bench_function("Generate 1,000 Paths from Prices", |b| {
-        b.iter(|| {
-            Prices::from_slice(black_box(&[100.0, 105.0, 110.0, 115.0]))
-                .simulate_paths(black_box(1_000), black_box(1_000))
-        })
-    });
-
     // No benchmark for fetch_historical_prices as it requires network access and api key, might test the caching fetching later
     g.bench_function("Plot Results", |b| {
         b.iter(|| {
-            SimulatedDatedPaths::from_paths(vec![
-                vec![
-                    (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 105.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 108.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 110.0),
+            SimulatedDatedPaths::from_paths(
+                &vec![
+                    vec![100.0, 105.0, 108.0, 110.0],
+                    vec![100.0, 95.0, 98.0, 102.0],
                 ],
-                vec![
-                    (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 95.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 98.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 102.0),
-                ],
-            ])
+                "2025-03-01",
+            )
             .plot("AAPL")
         })
     });
@@ -55,7 +35,7 @@ fn main_benchmark(c: &mut Criterion) {
 
     g.bench_function("End-to-End function", |b| {
         b.iter(|| {
-            generate_simulation(
+            Simulation::generate(
                 black_box("AAPL"),
                 black_box(&alphavantage_api_key),
                 black_box("2025-01-01"),
