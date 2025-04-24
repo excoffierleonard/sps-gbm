@@ -1,8 +1,8 @@
-use std::path::PathBuf;
-
-use chrono::NaiveDate;
+use chrono::{Days, NaiveDate};
 use plotters::prelude::*;
 use tempfile::NamedTempFile;
+
+use std::path::PathBuf;
 
 pub struct SimulatedDatedPaths {
     paths: Vec<Vec<(NaiveDate, f64)>>,
@@ -12,9 +12,30 @@ impl SimulatedDatedPaths {
     /// Creates a new instance of SimulatedDatedPaths
     ///
     /// # Arguments
-    /// * `paths` - A vector of simulated paths, where each path is a vector of (date, price) tuples
-    pub fn from_paths(paths: Vec<Vec<(NaiveDate, f64)>>) -> Self {
-        Self { paths }
+    /// * `paths` - A vector of vectors containing the simulated paths
+    /// * `end_date` - The last date of the historical data (the beginning of the simulation)
+    pub fn from_paths(paths: &Vec<Vec<f64>>, end_date: &str) -> Self {
+        // Create future dates for simulation
+        let last_historical_date = NaiveDate::parse_from_str(end_date, "%Y-%m-%d").unwrap();
+        let future_dates: Vec<NaiveDate> = (0..paths[0].len())
+            .map(|i| {
+                last_historical_date
+                    .checked_add_days(Days::new(i as u64))
+                    .unwrap()
+            })
+            .collect();
+
+        // Combine paths with dates
+        let dated_paths: Vec<Vec<(NaiveDate, f64)>> = paths
+            .iter()
+            .map(|path| {
+                path.iter()
+                    .enumerate()
+                    .map(|(i, &price)| (future_dates[i], price))
+                    .collect()
+            })
+            .collect();
+        Self { paths: dated_paths }
     }
 
     /// Plots the results of the simulation
@@ -98,21 +119,13 @@ mod tests {
     fn plot_results_test() {
         let symbol = "AAPL";
         let simulated_paths = vec![
-            vec![
-                (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
-                (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 105.0),
-                (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 108.0),
-                (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 110.0),
-            ],
-            vec![
-                (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
-                (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 95.0),
-                (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 98.0),
-                (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 102.0),
-            ],
+            vec![100.0, 105.0, 108.0, 110.0],
+            vec![100.0, 95.0, 98.0, 102.0],
         ];
 
-        let output_path = SimulatedDatedPaths::from_paths(simulated_paths).plot(symbol);
+        // Using the first simulation date as the end_date for the simulation
+        let output_path =
+            SimulatedDatedPaths::from_paths(&simulated_paths, "2025-03-01").plot(symbol);
 
         assert!(output_path.exists());
         assert_eq!(output_path.extension(), Some("png".as_ref()));

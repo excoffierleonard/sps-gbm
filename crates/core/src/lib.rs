@@ -1,6 +1,3 @@
-// External crates
-use chrono::NaiveDate;
-
 // Standard library
 use std::path::PathBuf;
 
@@ -47,32 +44,12 @@ impl Simulation {
             .fetch_prices(symbol, &DateRange::new(start_date, end_date));
 
         // Generate simulated paths
-        let paths =
-            GbmSimulator::from_prices(&historical_prices, 1.0).simulate_paths(num_steps, num_paths);
-
-        // Create future dates for simulation
-        let last_historical_date = NaiveDate::parse_from_str(end_date, "%Y-%m-%d").unwrap();
-        let future_dates: Vec<NaiveDate> = (0..=num_steps)
-            .map(|i| {
-                last_historical_date
-                    .checked_add_days(chrono::Days::new(i as u64))
-                    .unwrap()
-            })
-            .collect();
-
-        // Combine paths with dates
-        let dated_paths: Vec<Vec<(NaiveDate, f64)>> = paths
-            .iter()
-            .map(|path| {
-                path.iter()
-                    .enumerate()
-                    .map(|(i, &price)| (future_dates[i], price))
-                    .collect()
-            })
-            .collect();
+        let paths = GbmSimulator::from_prices(&historical_prices, 1.0)
+            .simulate_paths(num_steps, num_paths)
+            .into_vec_of_vec();
 
         Simulation {
-            plot_path: SimulatedDatedPaths::from_paths(dated_paths).plot(symbol),
+            plot_path: SimulatedDatedPaths::from_paths(&paths, end_date).plot(symbol),
             summary_stats: SummaryStats::from_prices(
                 &paths
                     .iter()

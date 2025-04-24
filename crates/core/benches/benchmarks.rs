@@ -1,8 +1,7 @@
-use core::{SimulatedDatedPaths, Simulation, SummaryStats};
-
-use chrono::NaiveDate;
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 use dotenvy::dotenv;
+
+use core::{SimulatedDatedPaths, Simulation, SummaryStats};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("GBM");
@@ -11,20 +10,13 @@ fn criterion_benchmark(c: &mut Criterion) {
     // No benchmark for fetch_historical_prices as it requires network access and api key, might test the caching fetching later
     g.bench_function("Plot Results", |b| {
         b.iter(|| {
-            SimulatedDatedPaths::from_paths(vec![
-                vec![
-                    (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 105.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 108.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 110.0),
+            SimulatedDatedPaths::from_paths(
+                &vec![
+                    vec![100.0, 105.0, 108.0, 110.0],
+                    vec![100.0, 95.0, 98.0, 102.0],
                 ],
-                vec![
-                    (NaiveDate::from_ymd_opt(2025, 3, 1).unwrap(), 100.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 2).unwrap(), 95.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 3).unwrap(), 98.0),
-                    (NaiveDate::from_ymd_opt(2025, 3, 4).unwrap(), 102.0),
-                ],
-            ])
+                "2025-03-01",
+            )
             .plot("AAPL")
         })
     });
