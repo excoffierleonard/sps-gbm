@@ -1,38 +1,4 @@
-use simulations::GbmSimulator;
-
 use statrs::statistics::{Data, Distribution as StatsDistribution, Median, OrderStatistics};
-
-pub struct Prices {
-    prices: Vec<f64>,
-}
-
-impl Prices {
-    pub fn from_slice(prices: &[f64]) -> Self {
-        Self {
-            prices: prices.to_vec(),
-        }
-    }
-
-    /// Generate GBM paths from historical prices
-    ///
-    /// # Arguments
-    ///
-    /// * `prices` - Vector of historical prices
-    /// * `num_steps` - The number of steps to simulate
-    /// * `num_paths` - The number of paths to simulate
-    ///
-    /// # Returns
-    ///
-    /// A vector of vectors, where each inner vector represents a simulated path
-    pub fn simulate_paths(&self, num_steps: usize, num_paths: usize) -> Vec<Vec<f64>> {
-        // Hardcoded dt value since here the time step between the historical prices and the simulated prices are the same
-        let dt = 1.0;
-
-        GbmSimulator::from_prices(&self.prices, dt)
-            .simulate_paths(num_steps, num_paths)
-            .into_vec_of_vec()
-    }
-}
 
 #[derive(Debug)]
 pub struct ConfidenceInterval {
@@ -161,23 +127,5 @@ mod tests {
         assert_eq!(stats.percentiles.p75, 43.33333333333333);
         assert_eq!(stats.percentiles.p90, 50.0);
         assert_eq!(stats.percentiles.p95, 50.0);
-    }
-
-    #[test]
-    fn generate_gbm_paths_from_prices_correct() {
-        let prices = vec![100.0, 105.0, 110.0];
-        let num_steps = 10;
-        let num_paths = 5;
-
-        let paths = Prices::from_slice(&prices).simulate_paths(num_steps, num_paths);
-
-        assert_eq!(paths.len(), num_paths);
-        for path in paths.iter() {
-            assert_eq!(path.len(), num_steps + 1);
-            assert_eq!(path[0], prices[0]);
-            for i in 1..path.len() {
-                assert!(path[i] > 0.0);
-            }
-        }
     }
 }

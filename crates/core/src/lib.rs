@@ -4,9 +4,11 @@ mod plot;
 
 use std::path::PathBuf;
 
-pub use calculations::{Prices, SummaryStats};
+pub use calculations::SummaryStats;
 pub use data::{AlphaVantage, DateRange, PriceProvider};
 pub use plot::SimulatedDatedPaths;
+
+use simulations::GbmSimulator;
 
 use chrono::NaiveDate;
 
@@ -42,7 +44,8 @@ pub fn generate_simulation(
         .fetch_prices(symbol, &DateRange::new(start_date, end_date));
 
     // Generate simulated paths
-    let paths = Prices::from_slice(&historical_prices).simulate_paths(num_steps, num_paths);
+    let paths =
+        GbmSimulator::from_prices(&historical_prices, 1.0).simulate_paths(num_steps, num_paths);
 
     // Create future dates for simulation
     let last_historical_date = NaiveDate::parse_from_str(end_date, "%Y-%m-%d").unwrap();
