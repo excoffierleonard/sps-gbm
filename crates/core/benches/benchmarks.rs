@@ -1,4 +1,4 @@
-use core::{GBMParameters, Prices, SimulatedDatedPaths, SummaryStats, generate_simulation};
+use core::{Prices, SimulatedDatedPaths, SummaryStats, generate_simulation};
 
 use chrono::NaiveDate;
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
@@ -8,11 +8,6 @@ fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("GBM");
     g.throughput(Throughput::Elements(1));
 
-    g.bench_function("Calculate Parameters", |b| {
-        b.iter(|| {
-            GBMParameters::from_prices(black_box(&[100.0, 105.0, 110.0, 115.0]), black_box(1.0))
-        })
-    });
     g.bench_function("Generate 1,000 Paths from Prices", |b| {
         b.iter(|| {
             Prices::from_slice(black_box(&[100.0, 105.0, 110.0, 115.0]))

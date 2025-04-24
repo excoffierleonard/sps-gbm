@@ -4,7 +4,7 @@ mod plot;
 
 use std::path::PathBuf;
 
-pub use calculations::{GBMParameters, Prices, SummaryStats};
+pub use calculations::{Prices, SummaryStats};
 pub use data::{AlphaVantage, DateRange, PriceProvider};
 pub use plot::SimulatedDatedPaths;
 

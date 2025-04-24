@@ -2,51 +2,6 @@ use simulations::GbmSimulator;
 
 use statrs::statistics::{Data, Distribution as StatsDistribution, Median, OrderStatistics};
 
-pub struct GBMParameters {
-    pub initial_value: f64,
-    pub drift: f64,
-    pub volatility: f64,
-    pub dt: f64,
-}
-
-impl GBMParameters {
-    pub fn new(initial_value: f64, drift: f64, volatility: f64, dt: f64) -> Self {
-        Self {
-            initial_value,
-            drift,
-            volatility,
-            dt,
-        }
-    }
-
-    /// Estimates GBM parameters (drift and volatility) from historical prices
-    ///
-    /// # Arguments
-    ///
-    /// * `prices` - Vector of historical prices
-    /// * `dt` - The time step (fraction of a year) between each price observation
-    pub fn from_prices(prices: &[f64], dt: f64) -> Self {
-        let initial_value = prices[0];
-        let log_returns: Vec<f64> = prices
-            .windows(2)
-            .map(|window| (window[1] / window[0]).ln())
-            .collect();
-
-        let mean_log_return = log_returns.iter().copied().sum::<f64>() / log_returns.len() as f64;
-        let variance_log_return = log_returns
-            .iter()
-            .map(|&x| (x - mean_log_return).powi(2))
-            .sum::<f64>()
-            / (log_returns.len() - 1) as f64;
-
-        let volatility = variance_log_return.sqrt() / dt.sqrt();
-        // Add the volatility adjustment to get the correct drift
-        let drift = mean_log_return / dt + 0.5 * volatility.powi(2);
-
-        GBMParameters::new(initial_value, drift, volatility, dt)
-    }
-}
-
 pub struct Prices {
     prices: Vec<f64>,
 }
@@ -73,16 +28,9 @@ impl Prices {
         // Hardcoded dt value since here the time step between the historical prices and the simulated prices are the same
         let dt = 1.0;
 
-        let gbm_parameters = GBMParameters::from_prices(&self.prices, dt);
-
-        GbmSimulator::new(
-            gbm_parameters.initial_value,
-            gbm_parameters.drift,
-            gbm_parameters.volatility,
-            gbm_parameters.dt,
-        )
-        .simulate_paths(num_steps, num_paths)
-        .into_vec_of_vec()
+        GbmSimulator::from_prices(&self.prices, dt)
+            .simulate_paths(num_steps, num_paths)
+            .into_vec_of_vec()
     }
 }
 
@@ -213,37 +161,6 @@ mod tests {
         assert_eq!(stats.percentiles.p75, 43.33333333333333);
         assert_eq!(stats.percentiles.p90, 50.0);
         assert_eq!(stats.percentiles.p95, 50.0);
-    }
-
-    #[test]
-    fn estimate_gbm_parameters_formulas() {
-        struct TestCase {
-            prices: Vec<f64>,
-            dt: f64,
-            expected_drift: f64,
-            expected_volatility: f64,
-        }
-
-        let test_cases = [
-            TestCase {
-                prices: vec![100.0, 105.0, 110.0],
-                dt: 1.0,
-                expected_drift: 0.0476563782957547,
-                expected_volatility: 0.0016052374230733303,
-            },
-            TestCase {
-                prices: vec![200.0, 210.0, 220.0],
-                dt: 1.0,
-                expected_drift: 0.0476563782957547,
-                expected_volatility: 0.0016052374230733303,
-            },
-        ];
-
-        for tc in test_cases.iter() {
-            let gbm_parameters = GBMParameters::from_prices(&tc.prices, tc.dt);
-            assert_eq!(gbm_parameters.drift, tc.expected_drift);
-            assert_eq!(gbm_parameters.volatility, tc.expected_volatility);
-        }
     }
 
     #[test]
