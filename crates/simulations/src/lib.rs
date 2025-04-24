@@ -175,8 +175,13 @@ impl GbmSimulator {
 mod tests {
     use super::*;
 
+    const DEFAULT_INITIAL: f64 = 100.0;
+    const DEFAULT_DRIFT: f64 = 0.05;
+    const DEFAULT_VOLATILITY: f64 = 0.2;
+    const DEFAULT_DT: f64 = 1.0;
+
     #[test]
-    fn gbm_step_formula() {
+    fn test_gbm_step_formula() {
         struct TestCase {
             current_value: f64,
             drift: f64,
@@ -213,7 +218,7 @@ mod tests {
             },
         ];
 
-        for tc in test_cases.iter() {
+        for tc in &test_cases {
             let simulator = GbmSimulator::new(tc.current_value, tc.drift, tc.volatility, tc.dt);
             let next_value = simulator.gbm_step(tc.current_value, tc.z);
             assert_eq!(next_value, tc.expected);
@@ -221,54 +226,50 @@ mod tests {
     }
 
     #[test]
-    fn generate_random_normal_zs_correct() {
+    fn test_random_normal_generator() {
         let num_steps = 1000;
         let zs = GbmSimulator::generate_random_normal_zs(num_steps);
 
         assert_eq!(zs.len(), num_steps);
-        for &z in &zs {
-            assert!(z.is_finite());
-        }
+        assert!(zs.iter().all(|z| z.is_finite()));
     }
 
     #[test]
-    fn simulate_path_correct() {
-        let initial_value = 100.0;
-        let drift = 0.05;
-        let volatility = 0.2;
-        let dt = 1.0;
+    fn test_single_path_simulation() {
         let num_steps = 10;
-
-        let simulator = GbmSimulator::new(initial_value, drift, volatility, dt);
+        let simulator = GbmSimulator::new(
+            DEFAULT_INITIAL,
+            DEFAULT_DRIFT, 
+            DEFAULT_VOLATILITY, 
+            DEFAULT_DT,
+        );
+        
         let path = simulator.simulate_path(num_steps);
 
         assert_eq!(path.len(), num_steps + 1);
-        assert_eq!(path[0], initial_value);
-
-        for i in 1..path.len() {
-            assert!(path[i] > 0.0);
-        }
+        assert_eq!(path[0], DEFAULT_INITIAL);
+        assert!(path.iter().skip(1).all(|&value| value > 0.0));
     }
 
     #[test]
-    fn simulate_paths_correct() {
-        let initial_value = 100.0;
-        let drift = 0.05;
-        let volatility = 0.2;
-        let dt = 1.0;
+    fn test_multiple_paths_simulation() {
         let num_steps = 10;
         let num_paths = 5;
-
-        let simulator = GbmSimulator::new(initial_value, drift, volatility, dt);
+        let simulator = GbmSimulator::new(
+            DEFAULT_INITIAL, 
+            DEFAULT_DRIFT, 
+            DEFAULT_VOLATILITY, 
+            DEFAULT_DT,
+        );
+        
         let paths = simulator.simulate_paths(num_steps, num_paths);
 
         assert_eq!(paths.len(), num_paths);
+        
         for path in paths.iter() {
             assert_eq!(path.len(), num_steps + 1);
-            assert_eq!(path[0], initial_value);
-            for value in path.iter().skip(1) {
-                assert!(*value > 0.0);
-            }
+            assert_eq!(path[0], DEFAULT_INITIAL);
+            assert!(path.iter().skip(1).all(|&value| value > 0.0));
         }
     }
 }
