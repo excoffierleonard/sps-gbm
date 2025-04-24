@@ -26,3 +26,7 @@ rand = { workspace = true }
 [[bench]]
 name = "benchmarks"
 harness = false
+
+[[bin]]
+name = "sps-gbm"
+path = "src/main.rs"
