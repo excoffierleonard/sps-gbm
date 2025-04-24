@@ -160,7 +160,7 @@ impl GbmSimulator {
     /// # Returns
     ///
     /// A vector containing the simulated path of values
-    fn simulate_path(&self, num_steps: usize) -> Vec<f64> {
+    fn simulate_path(&self, num_steps: usize) -> SimulatedPath {
         // Pregenerate all random z values
         let z_values = Self::generate_random_normal_zs(num_steps);
 
@@ -173,7 +173,7 @@ impl GbmSimulator {
             path.push(next_value);
             current_value = next_value;
         }
-        path
+        SimulatedPath::from(path)
     }
 
     /// Simulates multiple paths of geometric Brownian motion
@@ -189,10 +189,7 @@ impl GbmSimulator {
     pub fn simulate_paths(&self, num_steps: usize, num_paths: usize) -> SimulatedPaths {
         let paths: Vec<SimulatedPath> = (0..num_paths)
             .into_par_iter()
-            .map(|_| {
-                let simulated_path = self.simulate_path(num_steps);
-                SimulatedPath::from(simulated_path)
-            })
+            .map(|_| self.simulate_path(num_steps))
             .collect();
         SimulatedPaths::from(paths)
     }
