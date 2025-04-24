@@ -21,7 +21,12 @@ dotenvy = { workspace = true }
 criterion = { workspace = true }
 assert_cmd = { workspace = true }
 predicates = { workspace = true }
+rand = { workspace = true }
 
 [[bench]]
 name = "benchmarks"
 harness = false
+
+[[bin]]
+name = "sps-gbm"
+path = "src/main.rs"

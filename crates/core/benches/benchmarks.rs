@@ -2,23 +2,23 @@ use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_mai
 use dotenvy::dotenv;
 
 use core::{SimulatedDatedPaths, Simulation, SummaryStats};
+use rand::Rng;
+use rand::rng;
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("GBM");
     g.throughput(Throughput::Elements(1));
+    g.sample_size(10);
+
+    // Generate 1000 simulated paths, each with 1000 steps using a simple random generator.
+    let mut rng = rng();
+    let paths: Vec<Vec<f64>> = (0..1000)
+        .map(|_| (0..1000).map(|_| rng.random_range(90.0..110.0)).collect())
+        .collect();
 
     // No benchmark for fetch_historical_prices as it requires network access and api key, might test the caching fetching later
     g.bench_function("Plot Results", |b| {
-        b.iter(|| {
-            SimulatedDatedPaths::from_paths(
-                &vec![
-                    vec![100.0, 105.0, 108.0, 110.0],
-                    vec![100.0, 95.0, 98.0, 102.0],
-                ],
-                "2025-03-01",
-            )
-            .plot("AAPL")
-        })
+        b.iter(|| SimulatedDatedPaths::from_paths(&paths, "2025-03-01").plot("AAPL"))
     });
     g.bench_function("Calculate Summary Stats", |b| {
         b.iter(|| SummaryStats::from_prices(black_box(&vec![10.0, 20.0, 30.0, 40.0, 50.0])))
