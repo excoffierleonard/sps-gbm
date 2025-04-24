@@ -1,16 +1,21 @@
+// External crates
+use chrono::NaiveDate;
+
+// Standard library
+use std::path::PathBuf;
+
+// Local crates
+use simulations::GbmSimulator;
+
+// Module declarations
 mod calculations;
 mod data;
 mod plot;
 
-use std::path::PathBuf;
-
+// Re-exports
 pub use calculations::SummaryStats;
 pub use data::{AlphaVantage, DateRange, PriceProvider};
 pub use plot::SimulatedDatedPaths;
-
-use simulations::GbmSimulator;
-
-use chrono::NaiveDate;
 
 pub struct SimulationResult {
     // The path to the generated plot image
