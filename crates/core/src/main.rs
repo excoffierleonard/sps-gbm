@@ -21,11 +21,11 @@ struct Cli {
     end_date: String,
 
     /// Number of simulation steps
-    #[arg(short = 's', long, default_value_t = 100)]
+    #[arg(short = 's', long, default_value_t = 1000)]
     steps: usize,
 
     /// Number of simulation paths
-    #[arg(short = 'n', long, default_value_t = 100)]
+    #[arg(short = 'n', long, default_value_t = 1000)]
     paths: usize,
 }
 
