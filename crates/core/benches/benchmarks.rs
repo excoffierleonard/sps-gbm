@@ -1,4 +1,4 @@
-use core::{SimulatedDatedPaths, SummaryStats, generate_simulation};
+use core::{SimulatedDatedPaths, Simulation, SummaryStats};
 
 use chrono::NaiveDate;
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
@@ -43,7 +43,7 @@ fn main_benchmark(c: &mut Criterion) {
 
     g.bench_function("End-to-End function", |b| {
         b.iter(|| {
-            generate_simulation(
+            Simulation::generate(
                 black_box("AAPL"),
                 black_box(&alphavantage_api_key),
                 black_box("2025-01-01"),

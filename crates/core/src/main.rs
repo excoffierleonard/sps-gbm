@@ -1,6 +1,6 @@
 use std::env;
 
-use core::generate_simulation;
+use core::Simulation;
 
 use clap::Parser;
 
@@ -42,7 +42,7 @@ fn main() {
     );
 
     // Run simulation and generate plot
-    let simulation_result = generate_simulation(
+    let simulation_result = Simulation::generate(
         &args.ticker,
         &api_key,
         &args.start_date,

@@ -1,6 +1,5 @@
 use statrs::statistics::{Data, Distribution as StatsDistribution, Median, OrderStatistics};
 
-#[derive(Debug)]
 pub struct ConfidenceInterval {
     pub lower_bound: f64,
     pub upper_bound: f64,
@@ -15,7 +14,6 @@ impl ConfidenceInterval {
     }
 }
 
-#[derive(Debug)]
 pub struct Percenticles {
     pub p5: f64,
     pub p10: f64,
@@ -40,7 +38,6 @@ impl Percenticles {
     }
 }
 
-#[derive(Debug)]
 pub struct SummaryStats {
     pub mean: f64,
     pub median: f64,
