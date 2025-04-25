@@ -18,7 +18,10 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     // No benchmark for fetch_historical_prices as it requires network access and api key, might test the caching fetching later
     g.bench_function("Plot Results", |b| {
-        b.iter(|| SimulatedDatedPaths::from_paths(&paths, "2025-03-01").plot("AAPL"))
+        b.iter(|| {
+            SimulatedDatedPaths::from_paths(black_box(&paths), black_box("2025-03-01"))
+                .plot(black_box("AAPL"))
+        })
     });
     g.bench_function("Calculate Summary Stats", |b| {
         b.iter(|| SummaryStats::from_prices(black_box(&vec![10.0, 20.0, 30.0, 40.0, 50.0])))
