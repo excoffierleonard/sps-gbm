@@ -16,10 +16,10 @@ fn criterion_benchmark(c: &mut Criterion) {
         .map(|_| (0..1000).map(|_| rng.random_range(90.0..110.0)).collect())
         .collect();
 
-    // No benchmark for fetch_historical_prices as it requires network access and api key, might test the caching fetching later
+    // TOFIX: Why does this take 2 seconds but e2e takes <100ms ?
     g.bench_function("Plot Results", |b| {
         b.iter(|| {
-            SimulatedDatedPaths::from_paths(black_box(&paths), black_box("2025-03-01"))
+            SimulatedDatedPaths::from_paths(black_box(&paths), black_box("2025-04-01"))
                 .plot(black_box("AAPL"))
         })
     });
