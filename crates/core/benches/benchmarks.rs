@@ -24,7 +24,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         })
     });
     g.bench_function("Calculate Summary Stats", |b| {
-        b.iter(|| SummaryStats::from_prices(black_box(&vec![10.0, 20.0, 30.0, 40.0, 50.0])))
+        b.iter(|| SummaryStats::from_prices(black_box(&paths[999])))
     });
 }
 
