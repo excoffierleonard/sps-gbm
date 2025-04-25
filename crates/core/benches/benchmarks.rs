@@ -1,9 +1,11 @@
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 use dotenvy::dotenv;
-
-use core::{SimulatedDatedPaths, Simulation, SummaryStats};
 use rand::Rng;
 use rand::rng;
+
+use std::env;
+
+use core::{SimulatedDatedPaths, Simulation, SummaryStats};
 
 fn criterion_benchmark(c: &mut Criterion) {
     let mut g = c.benchmark_group("GBM");
@@ -34,7 +36,7 @@ fn main_benchmark(c: &mut Criterion) {
     g.throughput(Throughput::Elements(1));
 
     dotenv().ok();
-    let alphavantage_api_key = std::env::var("ALPHAVANTAGE_API_KEY").unwrap();
+    let alphavantage_api_key = env::var("ALPHAVANTAGE_API_KEY").unwrap();
 
     g.bench_function("End-to-End function", |b| {
         b.iter(|| {
