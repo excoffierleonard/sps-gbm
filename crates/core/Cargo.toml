@@ -14,7 +14,6 @@ reqwest = { workspace = true }
 serde_json = { workspace = true }
 # CLI
 clap = { workspace = true }
-# and Test
 dotenvy = { workspace = true }
 
 [dev-dependencies]
