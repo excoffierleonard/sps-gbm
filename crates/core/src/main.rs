@@ -1,6 +1,6 @@
 use std::env;
 
-use sps_gbm::generate_simulation;
+use core::Simulation;
 
 use clap::Parser;
 
@@ -21,11 +21,11 @@ struct Cli {
     end_date: String,
 
     /// Number of simulation steps
-    #[arg(short = 's', long, default_value_t = 100)]
+    #[arg(short = 's', long, default_value_t = 1000)]
     steps: usize,
 
     /// Number of simulation paths
-    #[arg(short = 'n', long, default_value_t = 100)]
+    #[arg(short = 'n', long, default_value_t = 1000)]
     paths: usize,
 }
 
@@ -42,7 +42,7 @@ fn main() {
     );
 
     // Run simulation and generate plot
-    let simulation_result = generate_simulation(
+    let simulation_result = Simulation::generate(
         &args.ticker,
         &api_key,
         &args.start_date,

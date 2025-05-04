@@ -1,6 +1,6 @@
 /target
 /.venv
-/cache
+**/cache
 /output
 
 .env
