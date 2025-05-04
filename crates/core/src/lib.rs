@@ -48,14 +48,14 @@ impl Simulation {
             .simulate_paths(num_steps, num_paths)
             .into_vec_of_vec();
 
+        let final_prices = paths
+            .iter()
+            .map(|path| path.last().copied().unwrap())
+            .collect::<Vec<f64>>();
+
         Simulation {
             plot_path: SimulatedDatedPaths::from_paths(&paths, end_date).plot(symbol),
-            summary_stats: SummaryStats::from_prices(
-                &paths
-                    .iter()
-                    .map(|path| path.last().copied().unwrap())
-                    .collect::<Vec<f64>>(),
-            ),
+            summary_stats: SummaryStats::from_prices(&final_prices),
         }
     }
 }
