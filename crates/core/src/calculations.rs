@@ -81,25 +81,25 @@ impl SummaryStats {
         // Using 1.96 for 95% confidence interval (normal distribution)
         let z_score = 1.96;
 
-        SummaryStats {
+        let confidence_interval_95 =
+            ConfidenceInterval::new(mean - z_score * std_error, mean + z_score * std_error);
+        let percentiles = Percenticles::new(
+            data.percentile(5),
+            data.percentile(10),
+            data.percentile(25),
+            data.percentile(50),
+            data.percentile(75),
+            data.percentile(90),
+            data.percentile(95),
+        );
+
+        SummaryStats::new(
             mean,
-            median: data.median(),
+            data.median(),
             std_dev,
-            // TODO: Fix, Might not be correct calculation for CI
-            confidence_interval_95: ConfidenceInterval::new(
-                mean - z_score * std_error,
-                mean + z_score * std_error,
-            ),
-            percentiles: Percenticles::new(
-                data.percentile(5),
-                data.percentile(10),
-                data.percentile(25),
-                data.percentile(50),
-                data.percentile(75),
-                data.percentile(90),
-                data.percentile(95),
-            ),
-        }
+            confidence_interval_95,
+            percentiles,
+        )
     }
 }
 
