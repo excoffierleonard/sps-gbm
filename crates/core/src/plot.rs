@@ -4,6 +4,78 @@ use tempfile::NamedTempFile;
 
 use std::path::PathBuf;
 
+struct FinalPrices {
+    /// The final prices of the simulated paths
+    final_prices: Vec<f64>,
+}
+
+impl FinalPrices {
+    /// Creates a new instance of FinalPrices
+    fn new(prices: Vec<f64>) -> Self {
+        Self {
+            final_prices: prices,
+        }
+    }
+
+    /// From simulated paths
+    fn from_simulated_paths(paths: &SimulatedDatedPaths) -> Self {
+        let final_prices = paths
+            .paths
+            .iter()
+            .map(|path| path.last().unwrap().1)
+            .collect::<Vec<f64>>();
+        Self::new(final_prices)
+    }
+
+    /// Compute the distribution of final prices across n intervals
+    ///
+    /// # Arguments
+    /// * `n_intervals` - The number of intervals to divide the price range into
+    ///
+    /// # Returns
+    /// A vector of frequencies (as percentages) for each interval
+    fn compute_distribution(&self, n_intervals: usize) -> Vec<f64> {
+        if self.final_prices.is_empty() || n_intervals == 0 {
+            return Vec::new();
+        }
+
+        // Find min and max prices
+        let min_price = self
+            .final_prices
+            .iter()
+            .fold(f64::INFINITY, |a, &b| a.min(b));
+        let max_price = self
+            .final_prices
+            .iter()
+            .fold(f64::NEG_INFINITY, |a, &b| a.max(b));
+
+        // Calculate interval width
+        let range = max_price - min_price;
+        let interval_width = range / n_intervals as f64;
+
+        // Initialize counters for each interval
+        let mut counts = vec![0; n_intervals];
+
+        // Count occurrences in each interval
+        for &price in &self.final_prices {
+            // Handle edge case for the maximum price
+            let interval = if price == max_price {
+                n_intervals - 1
+            } else {
+                ((price - min_price) / interval_width).floor() as usize
+            };
+            counts[interval] += 1;
+        }
+
+        // Convert counts to percentages
+        let total = self.final_prices.len() as f64;
+        counts
+            .into_iter()
+            .map(|count| count as f64 / total)
+            .collect()
+    }
+}
+
 pub struct SimulatedDatedPaths {
     paths: Vec<Vec<(NaiveDate, f64)>>,
 }
@@ -46,7 +118,8 @@ impl SimulatedDatedPaths {
     /// # Returns
     /// A PathBuf to the generated plot image
     pub fn plot(self, symbol: &str) -> PathBuf {
-        let simulated_paths = self.paths;
+        let simulated_paths = &self.paths;
+        let final_prices = FinalPrices::from_simulated_paths(&self);
 
         // Create a temporary file for the output
         let output_path = PathBuf::from(format!(
@@ -129,5 +202,55 @@ mod tests {
 
         assert!(output_path.exists());
         assert_eq!(output_path.extension(), Some("png".as_ref()));
+    }
+
+    #[test]
+    fn test_distribution_computation() {
+        // Create sample final prices
+        let prices = vec![
+            100.0, 105.0, 110.0, 115.0, 120.0, 125.0, 130.0, 135.0, 140.0, 145.0,
+        ];
+        let final_prices = FinalPrices::new(prices);
+
+        // Compute distribution with 5 intervals
+        let distribution = final_prices.compute_distribution(5);
+
+        // Expected results: 10 values distributed evenly across 5 intervals = 20% each
+
+        // Check result properties
+        assert_eq!(distribution.len(), 5);
+
+        // Check that each interval has 20% of the values (0.2 as a fraction)
+        for percentage in &distribution {
+            assert!(
+                (percentage - 0.2).abs() < 1e-10,
+                "Expected 0.2 but got {}",
+                percentage
+            );
+        }
+
+        // Test with uneven distribution
+        let uneven_prices = vec![100.0, 100.0, 100.0, 100.0, 140.0, 140.0];
+        let uneven_final_prices = FinalPrices::new(uneven_prices);
+        let uneven_distribution = uneven_final_prices.compute_distribution(2);
+
+        assert_eq!(uneven_distribution.len(), 2);
+        assert!(
+            (uneven_distribution[0] - 2.0 / 3.0).abs() < 1e-10,
+            "Expected 2/3 but got {}",
+            uneven_distribution[0]
+        );
+        assert!(
+            (uneven_distribution[1] - 1.0 / 3.0).abs() < 1e-10,
+            "Expected 1/3 but got {}",
+            uneven_distribution[1]
+        );
+
+        // Test edge case with empty prices
+        let empty_prices = FinalPrices::new(vec![]);
+        assert!(empty_prices.compute_distribution(5).is_empty());
+
+        // Test edge case with zero intervals
+        assert!(final_prices.compute_distribution(0).is_empty());
     }
 }
